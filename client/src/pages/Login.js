@@ -16,7 +16,7 @@ function Login() {
     }
 
     async function authUser(username, password){
-        let result = await fetch("http://localhost:5000/auth", {
+        let result = await fetch(process.env.REACT_APP_BASE_URL + "/auth", {
                 method: "post",
                 body: JSON.stringify({ username, password }),
                 headers: {
@@ -33,7 +33,7 @@ function Login() {
         const isLogin = localStorage.getItem("loggedIn");
         if(isLogin){
             (async function(){
-                let myUser = await fetch("http://localhost:5000/auth", {method:"get", credentials:"include"});
+                let myUser = await fetch(process.env.REACT_APP_BASE_URL + "/auth", {method:"get", credentials:"include"});
                 let myRes = await myUser.json();
                 
                 if(myRes.ECode === 0){

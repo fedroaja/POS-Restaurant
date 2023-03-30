@@ -17,7 +17,7 @@ function SidebarMenu() {
   function handleOnClick(e){
     e.preventDefault();
     (async function(){
-      let myUser = await fetch("http://localhost:5000/auth/logout",{method:"get", credentials:"include"});
+      let myUser = await fetch(process.env.REACT_APP_BASE_URL + "/auth/logout",{method:"get", credentials:"include"});
       let myRes = await myUser.json();
       
       if(myRes.ECode === 0){

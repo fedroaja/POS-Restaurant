@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -10,13 +10,33 @@ import ChartComp from '../../components/admin/ChartComp';
 import SalesHistory from '../../components/admin/SalesHistory';
 
 function Dashboard() {
-  const dataPenjualan = [4,2,2,6,4,9,7];
-  const dataProduct = [8,6,2,3,4,9,7];
-  const dataTable = [2,6,9,5,4,10,2];
+  const [dataEarning, setDataEarning] = useState([]);
+  const [summary, setSummary] = useState([]);
+
+  const [IsLoad, setIsLoad] = useState(true);
+  const [saleHist, setSaleHist] = useState([]);
+
+  const myStyle = {
+    marginTop: '22%',
+    fontSize: '30px', 
+    fontWeight:600
+  }
+
+  useEffect(()=>{
+    (async function(){
+      let myUser = await fetch(process.env.REACT_APP_BASE_URL + "/trans/dashboard", {method:"get", credentials:"include"});
+      let myRes = await myUser.json();
+      setDataEarning(myRes.earning.map(item => item.totalEarning))
+      setSaleHist(myRes.hist);
+      setSummary(myRes.summary);
+      setIsLoad(false);
+    })();
+  }, [])
+
   return (
     <div style={{height:'100%', width: '100%', padding: '3%'}}>
       <Container>
-        <Row>
+      <Row>
           <Col>
             <Card style={{ 
               width: '22rem',
@@ -25,10 +45,13 @@ function Dashboard() {
               transition: '0.3s',
               background:'linear-gradient(45deg, rgba(255,243,0,0.299124649859944) 0%, rgba(149,0,255,0.2234943977591037) 100%)' }}>
               <Card.Body>
-                <Card.Title><PaidIcon/> Earning</Card.Title>
+                <Card.Title><PaidIcon/> Earning <small>(This Year)</small></Card.Title>
                 <Card.Subtitle className="mb-2 text-muted"></Card.Subtitle>
-                <Card.Text style={{marginTop: '22%'}}>
-                  <h2>Rp. 830.030.299</h2>
+                <Card.Text style={myStyle}>
+                  {
+                    IsLoad ? "Loading...":
+                    <span>Rp. {summary[0].total.toLocaleString('id-ID')}</span>
+                  }
                 </Card.Text>
               </Card.Body>
             </Card>
@@ -43,8 +66,11 @@ function Dashboard() {
               <Card.Body>
                 <Card.Title><ReceiptIcon/> Product</Card.Title>
                 <Card.Subtitle className="mb-2 text-muted"></Card.Subtitle>
-                <Card.Text style={{marginTop: '22%'}}>
-                  <h2>232</h2>
+                <Card.Text style={myStyle}>
+                  {
+                    IsLoad ? "Loading...":
+                    <span>{summary[1].total.toLocaleString('id-ID')}</span>
+                  }
                 </Card.Text>
               </Card.Body>
             </Card>
@@ -59,20 +85,29 @@ function Dashboard() {
                 <Card.Body>
                   <Card.Title><TableRestaurantIcon/> Table</Card.Title>
                   <Card.Subtitle className="mb-2 text-muted"></Card.Subtitle>
-                  <Card.Text style={{marginTop: '22%'}}>
-                    <h2>12</h2>
+                  <Card.Text style={myStyle}>
+                    {
+                      IsLoad ? "Loading...":
+                      <span>{summary[2].total.toLocaleString('id-ID')}</span>
+                    }
                   </Card.Text>
                 </Card.Body>
               </Card>
           </Col>
         </Row>
         <Row style={{marginTop:'8%'}}>
-          <Col>
-              <ChartComp penjualan={dataPenjualan} product={dataProduct} table={dataTable}/>
-          </Col>
-          <Col >
-              <SalesHistory/>
-          </Col>
+          {
+            IsLoad ? "Loading..." :
+            <Col>
+                <ChartComp earning={dataEarning}/>
+            </Col>
+          }
+          {
+            IsLoad ? "Loading...":
+            <Col >
+              <SalesHistory data={saleHist}/>
+            </Col>
+          }
         </Row>
       </Container>
     </div>

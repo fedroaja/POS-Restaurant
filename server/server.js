@@ -28,8 +28,9 @@ app.use(session({
 }));
 
 const authRoute = require("./routes/auth");
+const transRoute = require("./routes/trans");
 app.use("/auth", authRoute);
-
+app.use("/trans", transRoute);
 
 app.get('/', (request, response) => {
 	request.session.destroy()
