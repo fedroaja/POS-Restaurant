@@ -47,6 +47,7 @@ function Login() {
                             break;
                         case 2:
                             break;
+                        default:break;
                     }
                 }
           
@@ -88,7 +89,7 @@ function Login() {
         let result = await authUser(e.target.username.value, e.target.password.value)
         result = await result.json();
         //console.log(result.username)
-        if(result.ECode == 0){
+        if(result.ECode === 0){
             localStorage.setItem('loggedIn', true)
             switch(result.role)
             {
@@ -100,6 +101,7 @@ function Login() {
                     break;
                 case 2:
                     break;
+                default:break;
             }
         }else{
             localStorage.clear()
