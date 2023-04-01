@@ -82,7 +82,6 @@ function TableComp(props) {
 
   const [selectedRows, setSelectedRows] = useState([]);
   const [toggleCleared, setToggleCleared] = useState(false);
-  const [data, setData] = useState(props.data);
 
   const handleRowSelected = useCallback(state => {
     setSelectedRows(state.selectedRows);
@@ -95,6 +94,15 @@ function TableComp(props) {
         //     setToggleCleared(!toggleCleared);
         //     setData(differenceBy(data, selectedRows, 'title'));
         // }
+        switch(props.fgTable){
+          case 'product':
+            alert('product');
+            break;
+          case 'ctg':
+            alert('ctg');
+            break;
+          default: return;
+        }
     };
 
     const handleEdit = () => {
@@ -114,16 +122,16 @@ function TableComp(props) {
             </Button>
         </div>
     );
-  }, [data, selectedRows, toggleCleared]);
+  }, [props.data, selectedRows, toggleCleared]);
 
   return (
     <DataTable
         columns={props.col}
-        data={data}
-        
+        data={props.data}
+        paginationRowsPerPageOptions={[10]}
         customStyles={customStyles}
         highlightOnHover
-		pointerOnHover
+		    pointerOnHover
         pagination
         responsive
         fixedHeader

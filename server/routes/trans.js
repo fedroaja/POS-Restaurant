@@ -1,16 +1,40 @@
-require('dotenv').config()
+require("dotenv").config();
 
-const { response } = require('express');
+const { response } = require("express");
 const express = require("express");
 const router = express.Router();
-const connection = require('../utils/connection');
+const connection = require("../utils/connection");
+const e = require("express");
 
-var sql,sql1,sql2
+var sql, sql1, sql2;
 
-router.get('/dashboard', (req, res) => {
-	if(!req.session.loggedin && !req.session.role != 0) return res.send({ECode:20});
+function isExists(codeField, codeValue, table) {
+  sql =
+    "select 1 from " + table + " where " + codeField + " = '" + codeValue + "'";
 
-	sql = `
+  return new Promise((resolve, reject) => {
+    connection.query(sql, function (error, results, field) {
+      if (error) {
+        return reject(error);
+      } else {
+        if (results.length > 0) {
+          resolve(true);
+        }
+        resolve(false);
+      }
+    });
+  });
+}
+
+function removeSpecialChar(str) {
+  return str.toString().replace(/[\\$'"]/g, "\\$&");
+}
+
+router.get("/dashboard", (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  sql = `
 				SELECT invoice.invoice_id,invoice.invoice_code,invoice.upddate,
 					   trans_id, product_name, trans_date, trans_qty, trans_amount
 				FROM invoice
@@ -19,7 +43,7 @@ router.get('/dashboard', (req, res) => {
 				Where invoice.upddate > date_sub( now(), interval 2 day)
 				ORDER BY trans_date DESC
 			`;
-	sql1 = `
+  sql1 = `
 					SELECT totalEarning
 					FROM (SELECT SUM(trans_amount) AS totalEarning, 
 								DATE_FORMAT(upddate, "%m") AS date 
@@ -34,7 +58,7 @@ router.get('/dashboard', (req, res) => {
 						FROM quantum_default_months) as Q
 					GROUP BY date
 			`;
-	sql2 = `
+  sql2 = `
 			select sum(trans_amount) total
 			from invoice_dt
 			where YEAR(upddate) = YEAR(now())
@@ -50,55 +74,118 @@ router.get('/dashboard', (req, res) => {
 			from table_place
 
 			`;
-	// var sql2 = `
-	// 			select t1.totalProduct
-	// 			from (
-	// 				SELECT DATE(upddate) as DATE, COUNT(product_id) totalProduct
-	// 						FROM product
-	// 						where upddate > date_sub( now(), interval 7 day)
-	// 						GROUP BY  DATE(upddate)
-	// 						ORDER BY DATE(upddate)
-	// 			) t1
-	// 			`;
-	
-	connection.query(sql, function(error, result, fields){
-		if (error) throw error;
+  // var sql2 = `
+  // 			select t1.totalProduct
+  // 			from (
+  // 				SELECT DATE(upddate) as DATE, COUNT(product_id) totalProduct
+  // 						FROM product
+  // 						where upddate > date_sub( now(), interval 7 day)
+  // 						GROUP BY  DATE(upddate)
+  // 						ORDER BY DATE(upddate)
+  // 			) t1
+  // 			`;
 
-		connection.query(sql1, function(error1, result1, fields1) {
-			if (error1) throw error1;
+  connection.query(sql, function (error, result, fields) {
+    if (error) throw error;
 
-			connection.query(sql2, function(error2, result2, fields2) {
-				if (error2) throw error2;
-	
-					res.send({hist:result ,earning: result1, summary: result2});
-					res.end;
-			});
-		});
-	});
+    connection.query(sql1, function (error1, result1, fields1) {
+      if (error1) throw error1;
+
+      connection.query(sql2, function (error2, result2, fields2) {
+        if (error2) throw error2;
+
+        res.send({ hist: result, earning: result1, summary: result2 });
+        res.end;
+      });
+    });
+  });
 });
 
-router.get('/product', (req, res) =>{
-	if(!req.session.loggedin && !req.session.role != 0) return res.send({ECode:20});
-	sql = `
+router.get("/product", (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+  sql = `
 			select product_id id,product_code,product_name,ctg_name,FORMAT(product_price,'id_ID') as product_price,
 				   DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active
 			from product
 			inner join product_ctg on product_ctg.ctg_id = product.product_ctg
 		  `;
-	sql2 = `
+  sql2 = `
 			Select ctg_id, ctg_code, ctg_name, DATE_FORMAT(upddate,'%d/%m/%Y') upddate
 			From product_ctg
 		   `;
-	connection.query(sql, function(err, result, fields){
-		if (err) throw err;
+  connection.query(sql, function (err, result, fields) {
+    if (err) throw err;
 
-		connection.query(sql2, function(err2, result2, fields2){
-			if(err2) throw err;
+    connection.query(sql2, function (err2, result2, fields2) {
+      if (err2) throw err;
 
-			res.send({product:result , category:result2});
-			res.end;
-		})
-	})
-})
+      res.send({ product: result, category: result2 });
+      res.end;
+    });
+  });
+});
+
+router.post("/addproduct", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  let product_id = removeSpecialChar(req.body.productId);
+  let product_code = removeSpecialChar(req.body.productCode);
+  let product_name = removeSpecialChar(req.body.productName);
+  let product_ctg = removeSpecialChar(req.body.productCtg);
+  let product_price = removeSpecialChar(req.body.productPrice);
+  let product_active = req.body.productActive ? "Y" : "N";
+  let fgMode = req.body.fgMode;
+
+  const validProdCode = await isExists("product_code", product_code, "product");
+  const validProdCtg = await isExists("ctg_id", product_ctg, "product_ctg");
+  const upddate = new Date();
+
+  if (fgMode == "I") {
+    if (validProdCode)
+      return res.send({ ECode: 10, EMsg: "Product Code Already Exists" });
+    if (!validProdCtg)
+      return res.send({ ECode: 10, EMsg: "Category Not Found" });
+
+    sql = `
+    INSERT INTO product(product_code, product_name, product_ctg, product_price, fgActive, upddate, updby)
+    VALUES (?,?,?,?,?,?,?)
+    `;
+    sql2 = `
+    select product_id id,product_code,product_name,ctg_name,FORMAT(product_price,'id_ID') as product_price,
+				   DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active
+			from product
+			inner join product_ctg on product_ctg.ctg_id = product.product_ctg
+      where product_id = ?
+    `;
+    connection.query(
+      sql,
+      [
+        product_code,
+        product_name,
+        product_ctg,
+        product_price,
+        product_active,
+        upddate,
+        req.session.userid,
+      ],
+      function (err, results, fields) {
+        if (err) throw err;
+
+        connection.query(
+          sql2,
+          [results.insertId],
+          function (err2, results2, fields2) {
+            if (err2) throw err2;
+            res.send({ product: results2, ECode: 0 });
+            res.end;
+          }
+        );
+      }
+    );
+  } else if (fgMode == "E") {
+  }
+});
 
 module.exports = router;
