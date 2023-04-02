@@ -43,18 +43,19 @@ function Product() {
     },
     {
       name: "Active",
+      selector: (row) => row.active,
       cell: (row) => (
         <Form>
           <Form.Check
             disabled
             type="switch"
-            defaultChecked={row.active === "Y"}
+            checked={row.active === "Y"}
             id="custom-switch"
             label=""
+            readOnly
           />
         </Form>
       ),
-      sortable: true,
     },
   ]);
   const [columnsCtg, setColumnsCtg] = useState([
@@ -80,8 +81,24 @@ function Product() {
   const [data, setData] = useState([]);
   const [dataCtg, setDataCtg] = useState([]);
   const [isLoad, setIsLoad] = useState(true);
+
+  const [modalProps, setModalProps] = useState([
+    {
+      title: "",
+      fgMode: "",
+      fgModal: "",
+      modalShow: false,
+    },
+  ]);
+
   const [modalShow, setModalShow] = useState(false);
   const [modalShowCtg, setModalShowCtg] = useState(false);
+
+  // const [modalTitle, setModalTitle] = useState("");
+  // const [fgMode, setFgMode] = useState("");
+  // const [fgModal, setFgModal] = useState("");
+
+  const [dataEdit, setDataEdit] = useState([]);
 
   useEffect(() => {
     (async function () {
@@ -134,7 +151,17 @@ function Product() {
                 <Button
                   variant="primary"
                   style={{ marginRight: "2%" }}
-                  onClick={() => setModalShow(true)}
+                  onClick={() => {
+                    setModalProps([
+                      {
+                        title: "Add Product",
+                        fgMode: "I",
+                        fgModal: "product",
+                        modalShow: true,
+                      },
+                    ]);
+                    setModalShow(true);
+                  }}
                 >
                   <AddCircleOutlineIcon /> Add Product
                 </Button>
@@ -148,8 +175,11 @@ function Product() {
                 <TableComp
                   col={columns}
                   data={data}
-                  dataSet={setData}
+                  setData={setData}
                   fgTable={"product"}
+                  setDataEdit={setDataEdit}
+                  setModalProps={setModalProps}
+                  setModalShow={setModalShow}
                 ></TableComp>
               </Col>
             </Row>
@@ -159,7 +189,17 @@ function Product() {
                 <Button
                   variant="primary"
                   style={{ marginRight: "2%" }}
-                  onClick={() => setModalShowCtg(true)}
+                  onClick={() => {
+                    setModalProps([
+                      {
+                        title: "Add Category",
+                        fgMode: "I",
+                        fgModal: "category",
+                        modalShow: true,
+                      },
+                    ]);
+                    setModalShow(true);
+                  }}
                 >
                   <AddCircleOutlineIcon /> Add Category
                 </Button>
@@ -173,8 +213,11 @@ function Product() {
                 <TableComp
                   col={columnsCtg}
                   data={dataCtg}
-                  dataSet={setDataCtg}
-                  fgTable={"ctg"}
+                  setData={setDataCtg}
+                  fgTable={"category"}
+                  setDataEdit={setDataEdit}
+                  setModalProps={setModalProps}
+                  setModalShow={setModalShow}
                 ></TableComp>
               </Col>
             </Row>
@@ -182,18 +225,10 @@ function Product() {
           <ModalComp
             show={modalShow}
             onHide={() => setModalShow(false)}
-            title="Add Product"
             dataCtg={dataCtg}
             setData={setData}
-            fgModal={"product"}
-            fgMode={"I"}
-          />
-          <ModalComp
-            show={modalShowCtg}
-            onHide={() => setModalShowCtg(false)}
-            title="Add Category"
-            fgModal={"category"}
-            fgMode={"I"}
+            modalProps={modalProps}
+            dataEdit={dataEdit}
           />
         </div>
       )}

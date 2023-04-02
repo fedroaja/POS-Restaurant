@@ -13,7 +13,7 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/logout", (req, res) => {
+router.delete("/logout", (req, res) => {
   req.session.destroy();
   res.send({ ECode: 0 });
 });
@@ -38,7 +38,7 @@ router.post("/", (req, res) => {
           // Authenticate the user
           req.session.loggedin = true;
           req.session.role = results[0].ROLE;
-          req.session.userid = results[0].ID;
+          req.session.username = results[0].USERNAME;
           // Redirect to home page
           data.uid = results[0].ID;
           data.username = results[0].USERNAME;

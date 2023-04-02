@@ -6,6 +6,8 @@ import Form from "react-bootstrap/Form";
 function ModalComp(props) {
   const [validated, setValidated] = useState(false);
 
+  console.log(props.dataEdit[0]);
+
   async function submitHandler(event) {
     setValidated(true);
     event.preventDefault();
@@ -16,17 +18,18 @@ function ModalComp(props) {
       return;
     }
 
-    switch (props.fgModal) {
+    switch (props.modalProps[0].fgModal) {
       case "product":
         {
           const myData = {
-            productId: props.fgMode == "I" ? 0 : props.productId,
+            productId:
+              props.modalProps[0].fgMode == "I" ? 0 : props.dataEdit[0].id,
             productCode: form.productCode.value,
             productName: form.productName.value,
             productCtg: form.productCtg.value,
             productPrice: form.productPrice.value,
             productActive: form.productActive.checked,
-            fgMode: props.fgMode,
+            fgMode: props.modalProps[0].fgMode,
           };
           let result = await fetch(
             process.env.REACT_APP_BASE_URL + "/trans/addproduct",
@@ -45,8 +48,7 @@ function ModalComp(props) {
               return;
             }
 
-            props.setData((prev) => [...prev, data.product[0]]);
-
+            props.setData((prev) => data.product);
             props.onHide(true);
           });
         }
@@ -62,17 +64,17 @@ function ModalComp(props) {
     <Modal
       show={props.show}
       onHide={props.onHide}
-      title={props.title}
+      title={props.modalProps[0].title}
       size="md"
       aria-labelledby="contained-modal-title-vcenter"
       centered
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          {props.title}
+          {props.modalProps[0].title}
         </Modal.Title>
       </Modal.Header>
-      {props.fgModal == "product" ? (
+      {props.modalProps[0].fgModal == "product" ? (
         <Modal.Body>
           <Form noValidate validated={validated} onSubmit={submitHandler}>
             <Form.Group
@@ -87,7 +89,12 @@ function ModalComp(props) {
                 placeholder="Product Code"
                 maxLength={25}
                 name="productCode"
-                disabled={props.fgMode === "E"}
+                defaultValue={
+                  props.modalProps[0].fgMode === "E"
+                    ? props.dataEdit[0].product_code
+                    : ""
+                }
+                disabled={props.modalProps[0].fgMode === "E"}
               />
               <Form.Control.Feedback type="invalid" tooltip>
                 Product Code Must Not Empty!
@@ -105,6 +112,11 @@ function ModalComp(props) {
                 placeholder="Product Name"
                 maxLength={255}
                 name="productName"
+                defaultValue={
+                  props.modalProps[0].fgMode === "E"
+                    ? props.dataEdit[0].product_name
+                    : ""
+                }
               />
               <Form.Control.Feedback type="invalid" tooltip>
                 Product Name Must Not Empty!
@@ -116,7 +128,15 @@ function ModalComp(props) {
               style={{ position: "relative" }}
             >
               <Form.Label>Category</Form.Label>
-              <Form.Select name="productCtg" required>
+              <Form.Select
+                name="productCtg"
+                required
+                defaultValue={
+                  props.modalProps[0].fgMode === "E"
+                    ? props.dataEdit[0].ctg_id
+                    : ""
+                }
+              >
                 {props.dataCtg.map((x) => {
                   return (
                     <option key={x.ctg_id} value={x.ctg_id}>
@@ -141,7 +161,11 @@ function ModalComp(props) {
                 name="productPrice"
                 min={0}
                 pattern="[0-9]"
-                defaultValue={0}
+                defaultValue={
+                  props.modalProps[0].fgMode === "E"
+                    ? props.dataEdit[0].product_price.replace(",", "")
+                    : ""
+                }
                 required
               />
               <Form.Control.Feedback type="invalid" tooltip>
@@ -165,9 +189,14 @@ function ModalComp(props) {
               <Form.Label>Active</Form.Label>
               <Form.Check
                 type="switch"
-                disabled={props.fgMode === "I"}
-                checked={true}
+                disabled={props.modalProps[0].fgMode === "I"}
+                defaultChecked={
+                  props.modalProps[0].fgMode === "E"
+                    ? props.dataEdit[0].active === "Y"
+                    : true
+                }
                 name="productActive"
+                onChange={() => {}}
               />
             </Form.Group>
             <div className="d-grid gap-2">
@@ -194,7 +223,7 @@ function ModalComp(props) {
                 name="ctgCode"
                 placeholder="Category Code"
                 required
-                disabled={props.fgMode == "E"}
+                disabled={props.modalProps[0].fgMode == "E"}
               />
               <Form.Control.Feedback type="invalid" tooltip>
                 Category Code Must Not Empty!
