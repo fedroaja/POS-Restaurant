@@ -8,6 +8,7 @@ import Row from "react-bootstrap/Row";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import Form from "react-bootstrap/Form";
 import ModalComp from "../../components/admin/ModalComp";
+import Loading from "../../components/Loading";
 
 function Product() {
   const [columns, setColumns] = useState([
@@ -142,7 +143,7 @@ function Product() {
       style={{ height: "100%", width: "100%", padding: "3%", overflow: "auto" }}
     >
       {isLoad ? (
-        "Loading..."
+        <Loading type={"spinningBubbles"} size={80} />
       ) : (
         <div>
           <Container>

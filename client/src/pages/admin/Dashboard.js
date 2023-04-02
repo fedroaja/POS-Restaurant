@@ -8,6 +8,7 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import ChartComp from "../../components/admin/ChartComp";
 import SalesHistory from "../../components/admin/SalesHistory";
+import Loading from "../../components/Loading";
 
 function Dashboard() {
   const [dataEarning, setDataEarning] = useState([]);
@@ -45,7 +46,7 @@ function Dashboard() {
       style={{ height: "100%", width: "100%", padding: "3%", overflow: "auto" }}
     >
       {IsLoad ? (
-        "Loading..."
+        <Loading type={"spinningBubbles"} size={80} />
       ) : (
         <Container>
           <Row>

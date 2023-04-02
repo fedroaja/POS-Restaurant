@@ -222,8 +222,6 @@ router.delete("/product_delete", async (req, res) => {
 
   let productId = req.body.productId;
 
-  console.log(productId);
-
   sql = `delete from product where product_id in (?)`;
   connection.query(sql, [productId], function (err, result, field) {
     if (err) throw err;
