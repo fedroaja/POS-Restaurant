@@ -80,3 +80,15 @@ input:focus {
   align-items: center;
   justify-content: center;
 }
+
+.fullArea {
+  height: 100%;
+  width: 100%;
+}
+
+.centerEl {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

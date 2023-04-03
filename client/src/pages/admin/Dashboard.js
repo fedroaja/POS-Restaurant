@@ -9,16 +9,25 @@ import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import ChartComp from "../../components/admin/ChartComp";
 import SalesHistory from "../../components/admin/SalesHistory";
 import Loading from "../../components/Loading";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 
 function Dashboard() {
   const [dataEarning, setDataEarning] = useState([]);
   const [summary, setSummary] = useState([]);
+  const [percentage, setPercentage] = useState([]);
 
   const [IsLoad, setIsLoad] = useState(true);
   const [saleHist, setSaleHist] = useState([]);
 
   const myStyle = {
     marginTop: "22%",
+    fontSize: "30px",
+    fontWeight: 600,
+  };
+
+  const earningStyle = {
+    marginTop: "17%",
     fontSize: "30px",
     fontWeight: 600,
   };
@@ -34,12 +43,39 @@ function Dashboard() {
         setDataEarning(myRes.earning.map((item) => item.totalEarning));
         setSaleHist(myRes.hist);
         setSummary(myRes.summary);
+        setPercentage(myRes.percentage);
         setIsLoad(false);
       } else {
         alert(myRes.EMsg);
       }
     })();
   }, []);
+
+  function calPercentage() {
+    if (percentage > 0) {
+      return (
+        <div style={{ color: "#4800ff", fontSize: "15px" }}>
+          <ArrowUpwardIcon style={{ fontSize: "15px", marginBottom: "2px" }} />
+          <span>{percentage.toString()} %</span>
+        </div>
+      );
+    } else if (percentage < 0) {
+      return (
+        <div style={{ color: "#ff1f2b", fontSize: "15px" }}>
+          <ArrowDownwardIcon
+            style={{ fontSize: "15px", marginBottom: "2px" }}
+          />
+          <span>{percentage.toString()} %</span>
+        </div>
+      );
+    } else {
+      return (
+        <div style={{ fontSize: "15px" }}>
+          ~<span>{percentage.toString()} %</span>
+        </div>
+      );
+    }
+  }
 
   return (
     <div
@@ -63,10 +99,20 @@ function Dashboard() {
               >
                 <Card.Body>
                   <Card.Title>
-                    <PaidIcon /> Earning <small>(This Year)</small>
+                    <Row>
+                      <Col>
+                        <PaidIcon /> Earning{" "}
+                      </Col>
+                      <Col style={{ paddingLeft: "26%" }}>
+                        {calPercentage()}
+                        <small style={{ fontSize: "12px" }}>
+                          (From Last year)
+                        </small>
+                      </Col>
+                    </Row>
                   </Card.Title>
                   <Card.Subtitle className="mb-2 text-muted"></Card.Subtitle>
-                  <Card.Text style={myStyle}>
+                  <Card.Text style={earningStyle}>
                     <span>Rp. {summary[0].total.toLocaleString("id-ID")}</span>
                   </Card.Text>
                 </Card.Body>

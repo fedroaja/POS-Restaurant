@@ -50,71 +50,78 @@ function SalesHistory(props) {
   //       }, 500);
   //     };
   return (
-    <div>
-      <InfiniteScroll
-        dataLength={state.items.length}
-        hasMore={state.hasMore}
-        loader={<h6>Loading...</h6>}
-        className="scrollbar"
-        height={360}
-      >
-        {arrayUniqueByKey.map((i, index) => (
-          <div style={style} key={index}>
-            <Row style={{ marginTop: "5%" }}>
-              <Col>
-                <h4>{i.invoice_code}</h4>
-              </Col>
-              <Col></Col>
-              <Col>
-                <small>{new Date(i.upddate).toLocaleDateString()}</small>
-              </Col>
-            </Row>
-            <hr></hr>
-            {state.items
-              .filter((x) => x.invoice_id == i.invoice_id && x.trans_id)
-              .map((y, idx) => (
-                <Row key={idx}>
-                  <Col>
-                    <small>{y.product_name}</small>
-                  </Col>
-                  <Col style={myStyle}>
-                    <small>x{y.trans_qty}</small>
-                  </Col>
-                  <Col style={myStyle}>
-                    <small>{y.trans_amount}</small>
-                  </Col>
-                </Row>
-              ))}
-            <hr></hr>
-            <Row>
-              <Col></Col>
-              <Col></Col>
-              <Col>
-                <small>
-                  Total :{" "}
-                  {state.items
-                    .filter((x) => x.invoice_id == i.invoice_id && x.trans_id)
-                    .reduce((prev, { trans_qty }) => prev + trans_qty, 0)}
-                </small>
-              </Col>
-            </Row>
-            <Row>
-              <Col></Col>
-              <Col></Col>
-              <Col>
-                <small style={myStyle2}>
-                  <PaidIcon fontSize="small" color="success" />
-                  {state.items
-                    .filter((x) => x.invoice_id == i.invoice_id && x.trans_id)
-                    .reduce((prev, { trans_amount }) => prev + trans_amount, 0)
-                    .toLocaleString("id-ID")}
-                </small>
-              </Col>
-            </Row>
-            <br></br>
-          </div>
-        ))}
-      </InfiniteScroll>
+    <div className="fullArea">
+      {state.items.length > 0 ? (
+        <InfiniteScroll
+          dataLength={state.items.length}
+          hasMore={state.hasMore}
+          loader={<h6>Loading...</h6>}
+          className="scrollbar"
+          height={360}
+        >
+          {arrayUniqueByKey.map((i, index) => (
+            <div style={style} key={index}>
+              <Row style={{ marginTop: "5%" }}>
+                <Col>
+                  <h4>{i.invoice_code}</h4>
+                </Col>
+                <Col></Col>
+                <Col>
+                  <small>{new Date(i.upddate).toLocaleDateString()}</small>
+                </Col>
+              </Row>
+              <hr></hr>
+              {state.items
+                .filter((x) => x.invoice_id == i.invoice_id && x.trans_id)
+                .map((y, idx) => (
+                  <Row key={idx}>
+                    <Col>
+                      <small>{y.product_name}</small>
+                    </Col>
+                    <Col style={myStyle}>
+                      <small>x{y.trans_qty}</small>
+                    </Col>
+                    <Col style={myStyle}>
+                      <small>{y.trans_amount}</small>
+                    </Col>
+                  </Row>
+                ))}
+              <hr></hr>
+              <Row>
+                <Col></Col>
+                <Col></Col>
+                <Col>
+                  <small>
+                    Total :{" "}
+                    {state.items
+                      .filter((x) => x.invoice_id == i.invoice_id && x.trans_id)
+                      .reduce((prev, { trans_qty }) => prev + trans_qty, 0)}
+                  </small>
+                </Col>
+              </Row>
+              <Row>
+                <Col></Col>
+                <Col></Col>
+                <Col>
+                  <small style={myStyle2}>
+                    <PaidIcon fontSize="small" style={{ color: "#ffc602" }} />
+                    {state.items
+                      .filter((x) => x.invoice_id == i.invoice_id && x.trans_id)
+                      .reduce(
+                        (prev, { trans_amount }) => prev + trans_amount,
+                        0
+                      )
+                      .toLocaleString("id-ID")}
+                  </small>
+                </Col>
+              </Row>
+              <br></br>
+            </div>
+          ))}
+        </InfiniteScroll>
+      ) : (
+        <h3 className="centerEl">No Data</h3>
+      )}
     </div>
   );
 }

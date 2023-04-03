@@ -128,11 +128,73 @@ function TableComp(props) {
               props.setData(resultData);
               setToggleCleared(!toggleCleared);
             });
-            console.log(selectedRows);
           }
           break;
         case "category":
-          alert("category");
+          {
+            const myData = {
+              ctgId: selectedRows.map((obj) => obj.ctg_id),
+            };
+            let result = await fetch(
+              process.env.REACT_APP_BASE_URL + "/trans/ctg_delete",
+              {
+                method: "delete",
+                body: JSON.stringify(myData),
+                headers: {
+                  "Content-type": "application/json;charset=UTF-8",
+                },
+                credentials: "include",
+              }
+            );
+            result = await result.json().then((data) => {
+              if (data.ECode !== 0) {
+                alert(data.EMsg);
+                return;
+              }
+
+              const resultData = props.data.filter(function (objFromA) {
+                return !selectedRows.find(function (objFromB) {
+                  return objFromA.ctg_id === objFromB.ctg_id;
+                });
+              });
+
+              props.setData(resultData);
+              setToggleCleared(!toggleCleared);
+            });
+          }
+          break;
+        case "table":
+          {
+            const myData = {
+              tableId: selectedRows.map((obj) => obj.table_id),
+            };
+            let result = await fetch(
+              process.env.REACT_APP_BASE_URL + "/trans/table_delete",
+              {
+                method: "delete",
+                body: JSON.stringify(myData),
+                headers: {
+                  "Content-type": "application/json;charset=UTF-8",
+                },
+                credentials: "include",
+              }
+            );
+            result = await result.json().then((data) => {
+              if (data.ECode !== 0) {
+                alert(data.EMsg);
+                return;
+              }
+
+              const resultData = props.data.filter(function (objFromA) {
+                return !selectedRows.find(function (objFromB) {
+                  return objFromA.table_id === objFromB.table_id;
+                });
+              });
+
+              props.setData(resultData);
+              setToggleCleared(!toggleCleared);
+            });
+          }
           break;
         default:
           return;
@@ -162,6 +224,17 @@ function TableComp(props) {
               fgModal: "category",
             },
           ]);
+          break;
+        case "table":
+          {
+            props.setModalProps([
+              {
+                title: "Edit Table",
+                fgMode: "E",
+                fgModal: "table",
+              },
+            ]);
+          }
           break;
         default:
           return;

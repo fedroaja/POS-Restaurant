@@ -6,7 +6,7 @@ const router = express.Router();
 const connection = require("../utils/connection");
 const e = require("express");
 
-var sql, sql1, sql2;
+var sql, sql1, sql2, sql3;
 
 function isExists(codeField, codeValue, table) {
   sql =
@@ -62,17 +62,20 @@ router.get("/dashboard", (req, res) => {
 			from invoice_dt
 			where YEAR(upddate) = YEAR(now())
 
-			UNION
+			UNION ALL
 
 			select Count(product_id) total
 			from product
 
-			UNION
+			UNION ALL
 
 			select Count(table_id) total
 			from table_place
 
 			`;
+  sql3 = `select sum(trans_amount) total
+    from invoice_dt
+    where YEAR(upddate) = YEAR(now()) - 1`;
   // var sql2 = `
   // 			select t1.totalProduct
   // 			from (
@@ -93,8 +96,20 @@ router.get("/dashboard", (req, res) => {
       connection.query(sql2, function (error2, result2, fields2) {
         if (error2) throw error2;
 
-        res.send({ hist: result, earning: result1, summary: result2 });
-        res.end;
+        connection.query(sql3, function (error3, result3, field3) {
+          if (error3) throw error3;
+
+          let resPercent =
+            (100 * (result2[0].total - result3[0].total)) / result3[0].total;
+          resPercent = resPercent.toFixed(2);
+          res.send({
+            hist: result,
+            earning: result1,
+            summary: result2,
+            percentage: resPercent,
+          });
+          res.end;
+        });
       });
     });
   });
@@ -224,6 +239,181 @@ router.delete("/product_delete", async (req, res) => {
 
   sql = `delete from product where product_id in (?)`;
   connection.query(sql, [productId], function (err, result, field) {
+    if (err) throw err;
+    res.send({ ECode: 0 });
+    res.end;
+  });
+});
+
+router.delete("/ctg_delete", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  let ctgId = req.body.ctgId;
+
+  sql = `delete from product_ctg where ctg_id in (?)`;
+  connection.query(sql, [ctgId], function (err, result, field) {
+    if (err) throw err;
+    res.send({ ECode: 0 });
+    res.end;
+  });
+});
+
+router.post("/addctg", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  let ctg_id = removeSpecialChar(req.body.ctg_id);
+  let ctg_code = removeSpecialChar(req.body.ctg_code);
+  let ctg_name = removeSpecialChar(req.body.ctg_name);
+  let fgMode = req.body.fgMode;
+  const upddate = new Date();
+
+  const validProdCtg = await isExists("ctg_code", ctg_code, "product_ctg");
+
+  sql2 = `
+  Select ctg_id, ctg_code, ctg_name, DATE_FORMAT(upddate,'%d/%m/%Y') upddate
+			From product_ctg
+      order by ctg_code
+  `;
+
+  if (fgMode == "I") {
+    if (validProdCtg)
+      return res.send({ ECode: 10, EMsg: "Category Code Already Exists" });
+
+    sql = `
+    INSERT INTO product_ctg(ctg_code, ctg_name, upddate, updby)
+    VALUES (?,?,?,?)
+    `;
+    connection.query(
+      sql,
+      [ctg_code, ctg_name, upddate, req.session.username],
+      function (err, results, fields) {
+        if (err) throw err;
+
+        connection.query(sql2, function (err2, results2, fields2) {
+          if (err2) throw err2;
+          res.send({ category: results2, ECode: 0 });
+          res.end;
+        });
+      }
+    );
+  } else if (fgMode == "E") {
+    if (!validProdCtg)
+      return res.send({ ECode: 10, EMsg: "Category Not Found" });
+
+    sql = `
+      update product_ctg
+      set ctg_name = ?, upddate = ?, updby = ?
+      where ctg_id = ?
+      `;
+    connection.query(
+      sql,
+      [ctg_name, upddate, req.session.username, ctg_id],
+      function (err, result, field) {
+        if (err) throw err;
+        connection.query(sql2, function (err2, results2, fields2) {
+          if (err2) throw err2;
+          res.send({ category: results2, ECode: 0 });
+          res.end;
+        });
+      }
+    );
+  }
+});
+
+router.get("/table", (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+  sql = `
+			select table_id,table_code,table_name, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate, fgActive active
+			from table_place
+      order by table_code
+		  `;
+  connection.query(sql, function (err, result, fields) {
+    if (err) throw err;
+
+    res.send({ table: result });
+    res.end;
+  });
+});
+
+router.post("/addtable", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  let table_id = removeSpecialChar(req.body.tableId);
+  let table_code = removeSpecialChar(req.body.tableCode);
+  let table_name = removeSpecialChar(req.body.tableName);
+  let table_active = req.body.tableActive ? "Y" : "N";
+  let fgMode = req.body.fgMode;
+
+  const validTableCode = await isExists(
+    "table_code",
+    table_code,
+    "table_place"
+  );
+  const upddate = new Date();
+
+  sql2 = `
+  select table_id,table_code,table_name, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate, fgActive active
+			from table_place
+      order by table_code
+  `;
+
+  if (fgMode == "I") {
+    if (validTableCode)
+      return res.send({ ECode: 10, EMsg: "Product Code Already Exists" });
+
+    sql = `
+    INSERT INTO table_place(table_code, table_name, fgActive, upddate, updby)
+    VALUES (?,?,?,?,?)
+    `;
+    connection.query(
+      sql,
+      [table_code, table_name, table_active, upddate, req.session.username],
+      function (err, results, fields) {
+        if (err) throw err;
+
+        connection.query(sql2, function (err2, results2, fields2) {
+          if (err2) throw err2;
+          res.send({ table: results2, ECode: 0 });
+          res.end;
+        });
+      }
+    );
+  } else if (fgMode == "E") {
+    if (!validTableCode)
+      return res.send({ ECode: 10, EMsg: "Table Code Not Found" });
+
+    sql = `
+      update table_place
+      set table_name = ?, fgActive = ?, upddate = ?, updby = ?
+      where table_id = ?
+      `;
+    connection.query(
+      sql,
+      [table_name, table_active, upddate, req.session.username, table_id],
+      function (err, result, field) {
+        if (err) throw err;
+        connection.query(sql2, function (err2, results2, fields2) {
+          if (err2) throw err2;
+          res.send({ table: results2, ECode: 0 });
+          res.end;
+        });
+      }
+    );
+  }
+});
+
+router.delete("/table_delete", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  let tableId = req.body.tableId;
+
+  sql = `delete from table_place where table_id in (?)`;
+  connection.query(sql, [tableId], function (err, result, field) {
     if (err) throw err;
     res.send({ ECode: 0 });
     res.end;

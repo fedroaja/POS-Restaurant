@@ -228,6 +228,7 @@ function Product() {
             onHide={() => setModalShow(false)}
             dataCtg={dataCtg}
             setData={setData}
+            setDataCtg={setDataCtg}
             modalProps={modalProps}
             dataEdit={dataEdit}
           />
