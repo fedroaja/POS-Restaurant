@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Sidebar,
   Menu,
@@ -21,6 +21,13 @@ import LogoutIcon from "@mui/icons-material/Logout";
 function SidebarMenu() {
   const navigate = useNavigate();
   const { collapseSidebar } = useProSidebar();
+  const [act, setAct] = useState({
+    dashboard: true,
+    product: false,
+    table: false,
+    transaction: false,
+    user: false,
+  });
 
   function handleOnClick(e) {
     e.preventDefault();
@@ -36,6 +43,10 @@ function SidebarMenu() {
         navigate("/login");
       }
     })();
+  }
+
+  function handleActive(menu) {
+    setAct({ [menu]: true });
   }
 
   return (
@@ -55,7 +66,11 @@ function SidebarMenu() {
                 return {
                   marginTop: "20px",
                   fontSize: "20px",
-                  color: disabled ? "red" : "#674188",
+                  color: "#674188",
+                  backgroundColor: active ? "#bfd7fc" : undefined,
+                  "&:hover": {
+                    backgroundColor: "#e2ecfb",
+                  },
                 };
             },
           }}
@@ -76,6 +91,8 @@ function SidebarMenu() {
           <MenuItem
             icon={<BarChartRoundedIcon />}
             component={<Link to="dashboard" />}
+            active={act.dashboard}
+            onClick={() => handleActive("dashboard")}
           >
             {" "}
             Dashboard
@@ -83,6 +100,8 @@ function SidebarMenu() {
           <MenuItem
             icon={<ReceiptRoundedIcon />}
             component={<Link to="product" />}
+            active={act.product}
+            onClick={() => handleActive("product")}
           >
             {" "}
             Product
@@ -90,6 +109,8 @@ function SidebarMenu() {
           <MenuItem
             icon={<TableRestaurantIcon />}
             component={<Link to="table" />}
+            active={act.table}
+            onClick={() => handleActive("table")}
           >
             {" "}
             Table
@@ -97,6 +118,8 @@ function SidebarMenu() {
           <MenuItem
             icon={<ReceiptLongIcon />}
             component={<Link to="transaction" />}
+            active={act.transaction}
+            onClick={() => handleActive("transaction")}
           >
             {" "}
             Transaction
@@ -104,6 +127,8 @@ function SidebarMenu() {
           <MenuItem
             icon={<AccountCircleRoundedIcon />}
             component={<Link to="user" />}
+            active={act.user}
+            onClick={() => handleActive("user")}
           >
             {" "}
             User

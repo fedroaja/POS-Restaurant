@@ -19,7 +19,6 @@ function Table() {
       title: "",
       fgMode: "",
       fgModal: "",
-      modalShow: false,
     },
   ]);
 

@@ -21,14 +21,14 @@ function Dashboard() {
   const [saleHist, setSaleHist] = useState([]);
 
   const myStyle = {
-    marginTop: "22%",
-    fontSize: "30px",
+    marginTop: "12%",
+    fontSize: "25px",
     fontWeight: 600,
   };
 
   const earningStyle = {
-    marginTop: "17%",
-    fontSize: "30px",
+    marginTop: "7%",
+    fontSize: "25px",
     fontWeight: 600,
   };
 
@@ -54,7 +54,7 @@ function Dashboard() {
   function calPercentage() {
     if (percentage > 0) {
       return (
-        <div style={{ color: "#4800ff", fontSize: "15px" }}>
+        <div style={{ color: "green", fontSize: "15px" }}>
           <ArrowUpwardIcon style={{ fontSize: "15px", marginBottom: "2px" }} />
           <span>{percentage.toString()} %</span>
         </div>
@@ -93,8 +93,8 @@ function Dashboard() {
                   border: "none",
                   boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)",
                   transition: "0.3s",
-                  background:
-                    "linear-gradient(45deg, rgba(255,243,0,0.299124649859944) 0%, rgba(149,0,255,0.2234943977591037) 100%)",
+                  background: "#f2f7ff",
+                  borderLeft: "10px solid #bfd7fc",
                 }}
               >
                 <Card.Body>
@@ -125,8 +125,8 @@ function Dashboard() {
                   border: "none",
                   boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)",
                   transition: "0.3s",
-                  background:
-                    "linear-gradient(45deg, rgba(255,243,0,0.499124649859944) 0%, rgba(255,115,0,0.4234943977591037) 100%)",
+                  background: "#f2f7ff",
+                  borderLeft: "10px solid #bfd7fc",
                 }}
               >
                 <Card.Body>
@@ -147,8 +147,8 @@ function Dashboard() {
                   border: "none",
                   boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)",
                   transition: "0.3s",
-                  background:
-                    "linear-gradient(90deg, rgba(255,243,0,0.499124649859944) 0%, rgba(50,255,187,0.4234943977591037) 100%)",
+                  background: "#f2f7ff",
+                  borderLeft: "10px solid #bfd7fc",
                 }}
               >
                 <Card.Body>

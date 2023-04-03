@@ -88,7 +88,6 @@ function Product() {
       title: "",
       fgMode: "",
       fgModal: "",
-      modalShow: false,
     },
   ]);
 

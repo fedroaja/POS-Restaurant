@@ -3,12 +3,67 @@ import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Loading from "../Loading";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import PaidIcon from "@mui/icons-material/Paid";
 
 function ModalComp(props) {
   const [validated, setValidated] = useState(false);
   const [isLoad, setLoad] = useState("N");
 
-  console.log(props.dataEdit[0]);
+  const myStyle = {
+    display: "flex",
+    alignContent: "center",
+    justifyContent: "center",
+    alignItems: "center",
+  };
+
+  const myStyle2 = {
+    display: "flex",
+    alignItems: "center",
+  };
+
+  function getStatus(code) {
+    let status = "";
+    let bgColor = "white";
+    switch (code) {
+      case "P":
+        status = "Process";
+        bgColor = "#ffa206";
+        break;
+      case "A":
+        status = "Approved";
+        bgColor = "#00d636";
+        break;
+      case "R":
+        status = "Rejected";
+        bgColor = "#ff0404";
+        break;
+      case "D":
+        status = "Done";
+        bgColor = "#0058ff";
+        break;
+      default:
+        break;
+    }
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          backgroundColor: bgColor,
+          borderRadius: "10px",
+          width: "70px",
+          height: "21px",
+          textAlign: "center",
+          fontSize: "13px",
+          color: "white",
+        }}
+      >
+        {status}
+      </span>
+    );
+  }
 
   async function submitHandler(event) {
     setValidated(true);
@@ -150,6 +205,7 @@ function ModalComp(props) {
                       ? props.dataEdit[0].product_code
                       : ""
                   }
+                  autoFocus={props.modalProps[0].fgMode === "I"}
                   disabled={props.modalProps[0].fgMode === "E"}
                 />
                 <Form.Control.Feedback type="invalid" tooltip>
@@ -173,6 +229,7 @@ function ModalComp(props) {
                       ? props.dataEdit[0].product_name
                       : ""
                   }
+                  autoFocus={props.modalProps[0].fgMode === "E"}
                 />
                 <Form.Control.Feedback type="invalid" tooltip>
                   Product Name Must Not Empty!
@@ -289,6 +346,7 @@ function ModalComp(props) {
                   placeholder="Category Code"
                   required
                   disabled={props.modalProps[0].fgMode == "E"}
+                  autoFocus={props.modalProps[0].fgMode === "I"}
                   defaultValue={
                     props.modalProps[0].fgMode === "E"
                       ? props.dataEdit[0].ctg_code
@@ -309,6 +367,7 @@ function ModalComp(props) {
                   type="text"
                   name="ctgName"
                   placeholder="Category Name"
+                  autoFocus={props.modalProps[0].fgMode === "E"}
                   defaultValue={
                     props.modalProps[0].fgMode === "E"
                       ? props.dataEdit[0].ctg_name
@@ -367,6 +426,7 @@ function ModalComp(props) {
                   placeholder="Table Code"
                   required
                   disabled={props.modalProps[0].fgMode == "E"}
+                  autoFocus={props.modalProps[0].fgMode === "I"}
                   defaultValue={
                     props.modalProps[0].fgMode === "E"
                       ? props.dataEdit[0].table_code
@@ -387,6 +447,7 @@ function ModalComp(props) {
                   type="text"
                   name="tableName"
                   placeholder="Table Name"
+                  autoFocus={props.modalProps[0].fgMode === "E"}
                   defaultValue={
                     props.modalProps[0].fgMode === "E"
                       ? props.dataEdit[0].table_name
@@ -443,6 +504,81 @@ function ModalComp(props) {
           </Modal.Body>
         );
         break;
+      case "transaction":
+        {
+          return (
+            <Modal.Body>
+              <Container>
+                <Row>
+                  <Col xs={12} md={7}>
+                    {props.selectedRow.invoice_code}
+                  </Col>
+                  <Col xs={6} md={5}>
+                    <div style={{ fontSize: "12px" }}>
+                      <strong>Created at :</strong>{" "}
+                      {props.selectedRow.trans_date}
+                    </div>
+                    <div style={{ fontSize: "12px" }}>
+                      <strong>Last Update :</strong> {props.selectedRow.upddate}
+                    </div>
+                  </Col>
+                </Row>
+                <hr />
+                {props.dataDetail.map((y, idx) => (
+                  <Row key={idx}>
+                    <Col>
+                      <small>{y.product_name}</small>
+                    </Col>
+                    <Col style={myStyle}>
+                      <small>x{y.trans_qty}</small>
+                    </Col>
+                    <Col style={myStyle}>
+                      <small>{y.trans_amount}</small>
+                    </Col>
+                  </Row>
+                ))}
+                <hr />
+                <Row>
+                  <Col></Col>
+                  <Col></Col>
+                  <Col>
+                    <small>
+                      Total :{" "}
+                      {props.dataDetail
+                        .filter(
+                          (x) =>
+                            x.invoice_id == props.selectedRow.invoice_id &&
+                            x.trans_id
+                        )
+                        .reduce((prev, { trans_qty }) => prev + trans_qty, 0)}
+                    </small>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col></Col>
+                  <Col></Col>
+                  <Col>
+                    <small style={myStyle2}>
+                      <PaidIcon fontSize="small" style={{ color: "#ffc602" }} />
+                      {props.dataDetail
+                        .filter(
+                          (x) =>
+                            x.invoice_id == props.selectedRow.invoice_id &&
+                            x.trans_id
+                        )
+                        .reduce(
+                          (prev, { trans_amount }) => prev + trans_amount,
+                          0
+                        )
+                        .toLocaleString("id-ID")}
+                    </small>
+                  </Col>
+                </Row>
+              </Container>
+            </Modal.Body>
+          );
+        }
+        break;
       default:
         break;
     }
@@ -461,7 +597,19 @@ function ModalComp(props) {
       >
         <Modal.Header closeButton>
           <Modal.Title id="contained-modal-title-vcenter">
-            {props.modalProps[0].title}
+            <Row>
+              <Col
+                xs={12}
+                md={props.modalProps[0].fgModal == "transaction" ? 6 : 12}
+              >
+                {props.modalProps[0].title}
+              </Col>
+              <Col xs={6} md={6}>
+                {props.modalProps[0].fgModal == "transaction"
+                  ? getStatus(props.selectedRow.status)
+                  : ""}
+              </Col>
+            </Row>
           </Modal.Title>
         </Modal.Header>
         {modalBody()}

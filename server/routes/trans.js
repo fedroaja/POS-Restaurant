@@ -36,31 +36,33 @@ router.get("/dashboard", (req, res) => {
 
   sql = `
 				SELECT invoice.invoice_id,invoice.invoice_code,invoice.upddate,
-					   trans_id, product_name, trans_date, trans_qty, trans_amount
+					   trans_id, product_name, trans_qty, trans_amount
 				FROM invoice
 				LEFT OUTER JOIN invoice_dt on invoice_dt.invoice_id = invoice.invoice_id
-				Where invoice.upddate > date_sub( now(), interval 2 day)
-				ORDER BY trans_date DESC
+				Where invoice.upddate > date_sub( now(), interval 2 day) and fgStatus = 'D'
+				ORDER BY invoice.upddate DESC
 			`;
   sql1 = `
-					SELECT totalEarning
-					FROM (SELECT SUM(trans_amount) AS totalEarning, 
-								DATE_FORMAT(upddate, "%m") AS date 
-						FROM invoice_dt 
-						WHERE YEAR(upddate) = YEAR(now())
-						GROUP BY DATE_FORMAT(upddate, "%m")
-					
-						UNION
-					
-						SELECT 0    AS totalEarning, 
-								month AS date
-						FROM quantum_default_months) as Q
-					GROUP BY date
+        SELECT totalEarning
+        FROM (SELECT SUM(trans_amount) AS totalEarning, 
+              DATE_FORMAT(invoice.upddate, "%m") AS date 
+          FROM invoice 
+                      left outer join invoice_dt on invoice_dt.invoice_id = invoice.invoice_id and invoice.fgStatus = 'D'
+          WHERE YEAR(invoice.upddate) = YEAR(now())
+          GROUP BY DATE_FORMAT(invoice.upddate, "%m")
+        
+          UNION
+        
+          SELECT 0    AS totalEarning, 
+              month AS date
+          FROM quantum_default_months) as Q
+        GROUP BY date
 			`;
   sql2 = `
-			select sum(trans_amount) total
-			from invoice_dt
-			where YEAR(upddate) = YEAR(now())
+      select sum(invoice_dt.trans_amount) total
+      from invoice
+            left outer join invoice_dt on invoice_dt.invoice_id = invoice.invoice_id and invoice.fgStatus = 'D'
+      where YEAR(invoice.upddate) = YEAR(now())
 
 			UNION ALL
 
@@ -73,9 +75,10 @@ router.get("/dashboard", (req, res) => {
 			from table_place
 
 			`;
-  sql3 = `select sum(trans_amount) total
-    from invoice_dt
-    where YEAR(upddate) = YEAR(now()) - 1`;
+  sql3 = `select sum(invoice_dt.trans_amount) total
+  from invoice
+        left outer join invoice_dt on invoice_dt.invoice_id = invoice.invoice_id and invoice.fgStatus = 'D'
+  where YEAR(invoice.upddate) = YEAR(now()) - 1`;
   // var sql2 = `
   // 			select t1.totalProduct
   // 			from (
@@ -98,9 +101,9 @@ router.get("/dashboard", (req, res) => {
 
         connection.query(sql3, function (error3, result3, field3) {
           if (error3) throw error3;
-
-          let resPercent =
-            (100 * (result2[0].total - result3[0].total)) / result3[0].total;
+          let curr = result2[0].total;
+          let prev = result3[0].total;
+          let resPercent = !prev ? 100 : (100 * (curr - prev)) / prev;
           resPercent = resPercent.toFixed(2);
           res.send({
             hist: result,
@@ -417,6 +420,31 @@ router.delete("/table_delete", async (req, res) => {
     if (err) throw err;
     res.send({ ECode: 0 });
     res.end;
+  });
+});
+
+router.get("/transaction", (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+  sql = `
+			select invoice_id,invoice_code,table_name, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate,  
+      DATE_FORMAT(trans_date,'%d/%m/%Y') as trans_date ,fgStatus status
+			from invoice
+      order by upddate
+		  `;
+  sql2 = `
+			select trans_id,invoice_id,product_name,
+      trans_qty, trans_amount, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate
+			from invoice_dt
+		  `;
+  connection.query(sql, function (err, result, fields) {
+    if (err) throw err;
+
+    connection.query(sql2, function (err2, result2, fields2) {
+      if (err2) throw err;
+      res.send({ invoice: result, invoiceDt: result2 });
+      res.end;
+    });
   });
 });
 

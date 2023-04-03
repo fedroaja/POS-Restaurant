@@ -74,7 +74,6 @@ function TableComp(props) {
       highlightOnHoverStyle: {
         backgroundColor: "#f2f7ff",
         borderBottomColor: "#FFFFFF",
-        borderRadius: "15px",
         outline: "1px solid #FFFFFF",
       },
     },
@@ -275,7 +274,7 @@ function TableComp(props) {
       pagination
       responsive
       fixedHeader
-      selectableRows
+      selectableRows={props.fgTable != "transaction"}
       contextActions={contextActions}
       onSelectedRowsChange={handleRowSelected}
       clearSelectedRows={toggleCleared}
