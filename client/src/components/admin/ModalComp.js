@@ -738,7 +738,7 @@ function ModalComp(props) {
                     required
                     defaultValue={
                       props.modalProps[0].fgMode === "E"
-                        ? props.dataEdit[0].ctg_id
+                        ? props.dataEdit[0].ROLE
                         : 0
                     }
                   >
