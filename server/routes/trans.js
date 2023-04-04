@@ -4,7 +4,9 @@ const { response } = require("express");
 const express = require("express");
 const router = express.Router();
 const connection = require("../utils/connection");
-const e = require("express");
+
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 var sql, sql1, sql2, sql3;
 
@@ -445,6 +447,136 @@ router.get("/transaction", (req, res) => {
       res.send({ invoice: result, invoiceDt: result2 });
       res.end;
     });
+  });
+});
+
+router.get("/user", (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+  sql = `
+			select ID,USERNAME,ROLE,DATE_FORMAT(createdate,'%d/%m/%Y') as createdate, NICKNAME,
+      DATE_FORMAT(upddate,'%d/%m/%Y') as upddate
+			from user
+      order by ROLE
+		  `;
+  connection.query(sql, function (err, result, fields) {
+    if (err) throw err;
+
+    res.send({ user: result });
+    res.end;
+  });
+});
+
+router.post("/adduser", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+  let userId = removeSpecialChar(req.body.userId);
+  let username = removeSpecialChar(req.body.username);
+  let password = removeSpecialChar(req.body.password);
+  let nickname = removeSpecialChar(req.body.nickname);
+  let role = removeSpecialChar(req.body.role);
+  let fgmode = removeSpecialChar(req.body.fgMode);
+  const upddate = new Date();
+
+  const validUser = await isExists("USERNAME", username, "user");
+
+  sql2 = `select ID,USERNAME,ROLE,DATE_FORMAT(createdate,'%d/%m/%Y') as createdate, NICKNAME,
+  DATE_FORMAT(upddate,'%d/%m/%Y') as upddate
+  from user
+  order by ROLE
+  `;
+
+  if (fgmode === "I") {
+    if (validUser)
+      return res.send({ ECode: 10, EMsg: "Username Already Exists" });
+
+    sql = `INSERT INTO USER(USERNAME, PASSWORD, NICKNAME, ROLE, createdate, upddate) VALUES(?,?,?,?,?,?)`;
+
+    bcrypt.hash(password, saltRounds, function (err, hash) {
+      if (err) throw err;
+
+      connection.query(
+        sql,
+        [username, hash, nickname, role, upddate, upddate],
+        function (err2, result2, field2) {
+          if (err2) throw err2;
+
+          connection.query(sql2, function (err3, result3, field3) {
+            if (err3) throw err3;
+
+            res.send({ user: result3, ECode: 0 });
+            res.end;
+          });
+        }
+      );
+    });
+  } else if (fgmode === "E") {
+    if (!validUser) return res.send({ ECode: 10, EMsg: "Username Not Found" });
+
+    sql = `UPDATE user 
+            SET NICKNAME = ?, 
+                ROLE = ?, 
+                upddate=? 
+          WHERE USERNAME = ?`;
+
+    connection.query(
+      sql,
+      [nickname, role, upddate, username],
+      function (err, result, field) {
+        if (err) throw err;
+
+        connection.query(sql2, function (err2, result2, field) {
+          if (err2) throw err;
+          res.send({ user: result2, ECode: 0 });
+          res.end;
+        });
+      }
+    );
+  }
+});
+
+router.put("/resetpassword", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+  let userId = removeSpecialChar(req.body.userId);
+  let username = removeSpecialChar(req.body.username);
+  let password = removeSpecialChar(req.body.password);
+
+  const validUser = await isExists("ID", userId, "user");
+
+  sql = `
+      update user
+        set password = ?
+      where ID = ? and username = ?
+  `;
+
+  bcrypt.hash(password, saltRounds, function (err, hash) {
+    if (err) throw err;
+
+    connection.query(
+      sql,
+      [hash, userId, username],
+      function (err2, result, field) {
+        if (err2) throw err;
+
+        res.send({ ECode: 0 });
+        res.end;
+      }
+    );
+  });
+});
+
+router.delete("/user_delete", async (req, res) => {
+  if (!req.session.loggedin && !req.session.role != 0)
+    return res.send({ ECode: 20, EMsg: "Session Expired" });
+
+  let userId = req.body.userId;
+
+  sql = `delete from user where ID in (?)`;
+  connection.query(sql, [userId], function (err, result, field) {
+    if (err) throw err;
+    res.send({ ECode: 0 });
+    res.end;
   });
 });
 

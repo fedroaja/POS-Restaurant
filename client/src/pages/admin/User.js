@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Loading from "../../components/Loading";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
-import Loading from "../../components/Loading";
 import Button from "react-bootstrap/Button";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import TableComp from "../../components/admin/TableComp";
-import Form from "react-bootstrap/Form";
 import ModalComp from "../../components/admin/ModalComp";
 
-function Table() {
+function User() {
   const [isLoad, setIsLoad] = useState(true);
   const [data, setData] = useState([]);
   const [modalShow, setModalShow] = useState(false);
@@ -21,35 +20,31 @@ function Table() {
       fgModal: "",
     },
   ]);
-
   const [columns, setColumns] = useState([
     {
-      name: "Table Code",
-      selector: (row) => row.table_code,
+      name: "Username",
+      selector: (row) => row.USERNAME,
       sortable: true,
       filterable: false,
     },
     {
-      name: "Table Name",
-      selector: (row) => row.table_name,
+      name: "Nickname",
+      selector: (row) => row.NICKNAME,
       sortable: true,
       filterable: false,
     },
     {
-      name: "Active",
-      selector: (row) => row.active,
-      cell: (row) => (
-        <Form>
-          <Form.Check
-            disabled
-            type="switch"
-            checked={row.active === "Y"}
-            id="custom-switch"
-            label=""
-            readOnly
-          />
-        </Form>
-      ),
+      name: "ROLE",
+      selector: (row) => row.ROLE,
+      cell: (row) => <span>{getRole(row.ROLE)}</span>,
+      sortable: true,
+      filterable: false,
+    },
+    {
+      name: "Crated At",
+      selector: (row) => row.createdate,
+      sortable: true,
+      filterable: false,
     },
     {
       name: "Last Update",
@@ -62,13 +57,13 @@ function Table() {
 
   useEffect(() => {
     (async function () {
-      let myUser = await fetch(
-        process.env.REACT_APP_BASE_URL + "/trans/table",
-        { method: "get", credentials: "include" }
-      );
+      let myUser = await fetch(process.env.REACT_APP_BASE_URL + "/trans/user", {
+        method: "get",
+        credentials: "include",
+      });
       let myRes = await myUser.json();
       if (myRes.ECode !== 20) {
-        setData(myRes.table);
+        setData(myRes.user);
         setIsLoad(false);
       } else {
         alert(myRes.EMsg);
@@ -86,6 +81,22 @@ function Table() {
     setColumns(cpData);
   }
 
+  function getRole(role) {
+    let myRole = "";
+    switch (role) {
+      case 0:
+        myRole = "Admin";
+        break;
+      case 1:
+        myRole = "Cashier";
+        break;
+      case 2:
+        myRole = "Kitchen";
+        break;
+    }
+    return myRole;
+  }
+
   return (
     <div
       style={{ height: "100%", width: "100%", padding: "3%", overflow: "auto" }}
@@ -93,7 +104,8 @@ function Table() {
       {isLoad ? (
         <Loading type={"spinningBubbles"} size={80} />
       ) : (
-        <div>
+        <>
+          {" "}
           <Container>
             <Row>
               <Col>
@@ -103,15 +115,15 @@ function Table() {
                   onClick={() => {
                     setModalProps([
                       {
-                        title: "Add Table",
+                        title: "Add User",
                         fgMode: "I",
-                        fgModal: "table",
+                        fgModal: "user",
                       },
                     ]);
                     setModalShow(true);
                   }}
                 >
-                  <AddCircleOutlineIcon /> Add Table
+                  <AddCircleOutlineIcon /> Add User
                 </Button>
                 <Button variant="warning" onClick={HandleFilter}>
                   <FilterAltIcon /> Filter
@@ -124,7 +136,7 @@ function Table() {
                   col={columns}
                   data={data}
                   setData={setData}
-                  fgTable={"table"}
+                  fgTable={"user"}
                   setDataEdit={setDataEdit}
                   setModalProps={setModalProps}
                   setModalShow={setModalShow}
@@ -139,10 +151,10 @@ function Table() {
             modalProps={modalProps}
             dataEdit={dataEdit}
           />
-        </div>
+        </>
       )}
     </div>
   );
 }
 
-export default Table;
+export default User;

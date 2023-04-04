@@ -35,13 +35,13 @@ function Transaction() {
       filterable: false,
     },
     {
-      name: "Update Date",
-      selector: (row) => row.upddate,
+      name: "Created At",
+      selector: (row) => row.trans_date,
       sortable: true,
       filterable: false,
     },
     {
-      name: "status",
+      name: "Status",
       selector: (row) => row.status,
       sortable: true,
       cell: (row) => <span>{getStatus(row.status)}</span>,
@@ -69,6 +69,13 @@ function Transaction() {
           Detail
         </Button>
       ),
+    },
+
+    {
+      name: "Last Update",
+      selector: (row) => row.upddate,
+      sortable: true,
+      filterable: false,
     },
   ]);
 

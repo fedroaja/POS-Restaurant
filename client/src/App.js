@@ -9,6 +9,7 @@ const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Product = lazy(() => import("./pages/admin/Product"));
 const Table = lazy(() => import("./pages/admin/Table"));
 const Transaction = lazy(() => import("./pages/admin/Transaction"));
+const User = lazy(() => import("./pages/admin/User"));
 const Cashier = lazy(() => import("./pages/cashier/Cashier"));
 const Notfound = lazy(() => import("./pages/NotFound"));
 
@@ -30,6 +31,7 @@ function App() {
             <Route exact path="product" element={<Product />} />
             <Route exact path="table" element={<Table />} />
             <Route exact path="transaction" element={<Transaction />} />
+            <Route exact path="user" element={<User />} />
           </Route>
           <Route exact path="cashier" element={<Cashier />}></Route>
           <Route path="*" element={<Notfound />} />

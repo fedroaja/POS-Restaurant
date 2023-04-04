@@ -195,6 +195,39 @@ function TableComp(props) {
             });
           }
           break;
+        case "user":
+          {
+            const myData = {
+              userId: selectedRows.map((obj) => obj.ID),
+            };
+            let result = await fetch(
+              process.env.REACT_APP_BASE_URL + "/trans/user_delete",
+              {
+                method: "delete",
+                body: JSON.stringify(myData),
+                headers: {
+                  "Content-type": "application/json;charset=UTF-8",
+                },
+                credentials: "include",
+              }
+            );
+            result = await result.json().then((data) => {
+              if (data.ECode !== 0) {
+                alert(data.EMsg);
+                return;
+              }
+
+              const resultData = props.data.filter(function (objFromA) {
+                return !selectedRows.find(function (objFromB) {
+                  return objFromA.ID === objFromB.ID;
+                });
+              });
+
+              props.setData(resultData);
+              setToggleCleared(!toggleCleared);
+            });
+          }
+          break;
         default:
           return;
       }
@@ -235,6 +268,17 @@ function TableComp(props) {
             ]);
           }
           break;
+        case "user":
+          {
+            props.setModalProps([
+              {
+                title: "Edit User",
+                fgMode: "E",
+                fgModal: "user",
+              },
+            ]);
+          }
+          break;
         default:
           return;
       }
@@ -243,8 +287,37 @@ function TableComp(props) {
       setToggleCleared(!toggleCleared);
     };
 
+    const handleReset = () => {
+      if (selectedRows.lengh == 0 || selectedRows.length > 1) {
+        alert("Cannot reset password more than one row at a time");
+        return;
+      }
+
+      props.setModalProps([
+        {
+          title: "Reset Password",
+          fgMode: "R",
+          fgModal: "reset",
+        },
+      ]);
+      props.setDataEdit(selectedRows);
+      props.setModalShow(true);
+      setToggleCleared(!toggleCleared);
+    };
+
     return (
       <div>
+        {props.fgTable == "user" ? (
+          <Button
+            key="reset"
+            onClick={handleReset}
+            style={{ backgroundColor: "#048dff", marginRight: "8px" }}
+          >
+            Reset Password
+          </Button>
+        ) : (
+          ""
+        )}
         <Button
           key="edit"
           onClick={handleEdit}

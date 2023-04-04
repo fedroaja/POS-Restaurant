@@ -37,12 +37,6 @@ function Product() {
       filterable: false,
     },
     {
-      name: "Update Date",
-      selector: (row) => row.upddate,
-      sortable: true,
-      filterable: false,
-    },
-    {
       name: "Active",
       selector: (row) => row.active,
       cell: (row) => (
@@ -57,6 +51,13 @@ function Product() {
           />
         </Form>
       ),
+    },
+
+    {
+      name: "Last Update",
+      selector: (row) => row.upddate,
+      sortable: true,
+      filterable: false,
     },
   ]);
   const [columnsCtg, setColumnsCtg] = useState([
@@ -73,7 +74,7 @@ function Product() {
       filterable: false,
     },
     {
-      name: "Update Date",
+      name: "Last Update",
       selector: (row) => row.upddate,
       sortable: true,
       filterable: false,
