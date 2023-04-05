@@ -34,17 +34,18 @@ function Dashboard() {
 
   useEffect(() => {
     (async function () {
+      setIsLoad(true);
       let myUser = await fetch(
         process.env.REACT_APP_BASE_URL + "/trans/dashboard",
         { method: "get", credentials: "include" }
       );
       let myRes = await myUser.json();
+      setIsLoad(false);
       if (myRes.ECode !== 20) {
         setDataEarning(myRes.earning.map((item) => item.totalEarning));
         setSaleHist(myRes.hist);
         setSummary(myRes.summary);
         setPercentage(myRes.percentage);
-        setIsLoad(false);
       } else {
         alert(myRes.EMsg);
       }

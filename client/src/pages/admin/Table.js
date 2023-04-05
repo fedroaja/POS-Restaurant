@@ -62,14 +62,15 @@ function Table() {
 
   useEffect(() => {
     (async function () {
+      setIsLoad(true);
       let myUser = await fetch(
         process.env.REACT_APP_BASE_URL + "/trans/table",
         { method: "get", credentials: "include" }
       );
       let myRes = await myUser.json();
+      setIsLoad(false);
       if (myRes.ECode !== 20) {
         setData(myRes.table);
-        setIsLoad(false);
       } else {
         alert(myRes.EMsg);
       }

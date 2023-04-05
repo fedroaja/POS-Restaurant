@@ -57,14 +57,15 @@ function User() {
 
   useEffect(() => {
     (async function () {
+      setIsLoad(true);
       let myUser = await fetch(process.env.REACT_APP_BASE_URL + "/trans/user", {
         method: "get",
         credentials: "include",
       });
       let myRes = await myUser.json();
       if (myRes.ECode !== 20) {
-        setData(myRes.user);
         setIsLoad(false);
+        setData(myRes.user);
       } else {
         alert(myRes.EMsg);
       }

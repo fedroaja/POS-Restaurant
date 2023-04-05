@@ -37,6 +37,26 @@ function Product() {
       filterable: false,
     },
     {
+      name: "Delivery Time",
+      selector: (row) => row.delivery_time,
+      cell: (row) => <span>{row.delivery_time} Minute</span>,
+      sortable: true,
+      filterable: false,
+    },
+    {
+      name: "Image",
+      selector: (row) => row.img_url,
+      grow: 0,
+      cell: (row) => (
+        <img
+          height="50px"
+          width="50px"
+          alt={row.product_name}
+          src={row.img_url}
+        />
+      ),
+    },
+    {
       name: "Active",
       selector: (row) => row.active,
       cell: (row) => (
@@ -103,15 +123,16 @@ function Product() {
 
   useEffect(() => {
     (async function () {
+      setIsLoad(true);
       let myUser = await fetch(
         process.env.REACT_APP_BASE_URL + "/trans/product",
         { method: "get", credentials: "include" }
       );
       let myRes = await myUser.json();
+      setIsLoad(false);
       if (myRes.ECode !== 20) {
         setData(myRes.product);
         setDataCtg(myRes.category);
-        setIsLoad(false);
       } else {
         alert(myRes.EMsg);
       }

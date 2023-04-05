@@ -28,10 +28,6 @@ function isExists(codeField, codeValue, table) {
   });
 }
 
-function removeSpecialChar(str) {
-  return str.toString().replace(/[\\$'"]/g, "\\$&");
-}
-
 router.get("/dashboard", (req, res) => {
   if (!req.session.loggedin && !req.session.role != 0)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
@@ -125,7 +121,7 @@ router.get("/product", (req, res) => {
     return res.send({ ECode: 20, EMsg: "Session Expired" });
   sql = `
 			select product_id id,product_code,product_name,ctg_id, ctg_name,FORMAT(product_price,'id_ID') as product_price,
-				   DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active
+				   DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active, delivery_time, img_url
 			from product
 			inner join product_ctg on product_ctg.ctg_id = product.product_ctg
       order by product_code
@@ -151,11 +147,13 @@ router.post("/addproduct", async (req, res) => {
   if (!req.session.loggedin && !req.session.role != 0)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
 
-  let product_id = removeSpecialChar(req.body.productId);
-  let product_code = removeSpecialChar(req.body.productCode);
-  let product_name = removeSpecialChar(req.body.productName);
-  let product_ctg = removeSpecialChar(req.body.productCtg);
-  let product_price = removeSpecialChar(req.body.productPrice);
+  let product_id = req.body.productId;
+  let product_code = req.body.productCode;
+  let product_name = req.body.productName;
+  let product_ctg = req.body.productCtg;
+  let product_price = req.body.productPrice;
+  let delivery_time = req.body.deliveryTime;
+  let img_url = req.body.imgUrl;
   let product_active = req.body.productActive ? "Y" : "N";
   let fgMode = req.body.fgMode;
 
@@ -165,7 +163,7 @@ router.post("/addproduct", async (req, res) => {
 
   sql2 = `
   select product_id id,product_code,product_name,ctg_id,ctg_name,FORMAT(product_price,'id_ID') as product_price,
-         DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active
+         DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active, delivery_time, img_url
     from product
     inner join product_ctg on product_ctg.ctg_id = product.product_ctg
     order by product_code
@@ -178,8 +176,8 @@ router.post("/addproduct", async (req, res) => {
       return res.send({ ECode: 10, EMsg: "Category Not Found" });
 
     sql = `
-    INSERT INTO product(product_code, product_name, product_ctg, product_price, fgActive, upddate, updby)
-    VALUES (?,?,?,?,?,?,?)
+    INSERT INTO product(product_code, product_name, product_ctg, product_price, fgActive, upddate, updby, delivery_time, img_url)
+    VALUES (?,?,?,?,?,?,?,?,?)
     `;
     connection.query(
       sql,
@@ -191,6 +189,8 @@ router.post("/addproduct", async (req, res) => {
         product_active,
         upddate,
         req.session.username,
+        delivery_time,
+        img_url,
       ],
       function (err, results, fields) {
         if (err) throw err;
@@ -210,7 +210,7 @@ router.post("/addproduct", async (req, res) => {
 
     sql = `
       update product
-      set product_name = ?, product_ctg = ?, product_price = ?, fgActive = ?, upddate = ?, updby = ?
+      set product_name = ?, product_ctg = ?, product_price = ?, fgActive = ?, upddate = ?, updby = ?, delivery_time = ?, img_url = ?
       where product_id = ?
       `;
     connection.query(
@@ -222,6 +222,8 @@ router.post("/addproduct", async (req, res) => {
         product_active,
         upddate,
         req.session.username,
+        delivery_time,
+        img_url,
         product_id,
       ],
       function (err, result, field) {
@@ -268,9 +270,9 @@ router.post("/addctg", async (req, res) => {
   if (!req.session.loggedin && !req.session.role != 0)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
 
-  let ctg_id = removeSpecialChar(req.body.ctg_id);
-  let ctg_code = removeSpecialChar(req.body.ctg_code);
-  let ctg_name = removeSpecialChar(req.body.ctg_name);
+  let ctg_id = req.body.ctg_id;
+  let ctg_code = req.body.ctg_code;
+  let ctg_name = req.body.ctg_name;
   let fgMode = req.body.fgMode;
   const upddate = new Date();
 
@@ -347,9 +349,9 @@ router.post("/addtable", async (req, res) => {
   if (!req.session.loggedin && !req.session.role != 0)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
 
-  let table_id = removeSpecialChar(req.body.tableId);
-  let table_code = removeSpecialChar(req.body.tableCode);
-  let table_name = removeSpecialChar(req.body.tableName);
+  let table_id = req.body.tableId;
+  let table_code = req.body.tableCode;
+  let table_name = req.body.tableName;
   let table_active = req.body.tableActive ? "Y" : "N";
   let fgMode = req.body.fgMode;
 
@@ -470,12 +472,12 @@ router.get("/user", (req, res) => {
 router.post("/adduser", async (req, res) => {
   if (!req.session.loggedin && !req.session.role != 0)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
-  let userId = removeSpecialChar(req.body.userId);
-  let username = removeSpecialChar(req.body.username);
-  let password = removeSpecialChar(req.body.password);
-  let nickname = removeSpecialChar(req.body.nickname);
-  let role = removeSpecialChar(req.body.role);
-  let fgmode = removeSpecialChar(req.body.fgMode);
+  let userId = req.body.userId;
+  let username = req.body.username;
+  let password = req.body.password;
+  let nickname = req.body.nickname;
+  let role = req.body.role;
+  let fgmode = req.body.fgMode;
   const upddate = new Date();
 
   const validUser = await isExists("USERNAME", username, "user");
@@ -538,9 +540,9 @@ router.post("/adduser", async (req, res) => {
 router.put("/resetpassword", async (req, res) => {
   if (!req.session.loggedin && !req.session.role != 0)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
-  let userId = removeSpecialChar(req.body.userId);
-  let username = removeSpecialChar(req.body.username);
-  let password = removeSpecialChar(req.body.password);
+  let userId = req.body.userId;
+  let username = req.body.username;
+  let password = req.body.password;
 
   const validUser = await isExists("ID", userId, "user");
 

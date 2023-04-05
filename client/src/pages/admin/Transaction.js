@@ -81,15 +81,16 @@ function Transaction() {
 
   useEffect(() => {
     (async function () {
+      setIsLoad(true);
       let myUser = await fetch(
         process.env.REACT_APP_BASE_URL + "/trans/transaction",
         { method: "get", credentials: "include" }
       );
       let myRes = await myUser.json();
+      setIsLoad(false);
       if (myRes.ECode !== 20) {
         setData(myRes.invoice);
         setDataDetail(myRes.invoiceDt);
-        setIsLoad(false);
       } else {
         alert(myRes.EMsg);
       }
@@ -121,6 +122,10 @@ function Transaction() {
       case "R":
         status = "Rejected";
         bgColor = "#ff0404";
+        break;
+      case "O":
+        status = "Ready";
+        bgColor = "purple";
         break;
       case "D":
         status = "Done";
@@ -213,6 +218,26 @@ function Transaction() {
                     }}
                   ></span>
                   <span style={{ marginLeft: "5px" }}>Rejected</span>
+                </div>
+              </Col>
+              <Col>
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      backgroundColor: "purple",
+                      width: "40px",
+                      height: "20px",
+                      borderRadius: "10px",
+                      display: "inline-block",
+                    }}
+                  ></span>
+                  <span style={{ marginLeft: "5px" }}>Ready</span>
                 </div>
               </Col>
               <Col>

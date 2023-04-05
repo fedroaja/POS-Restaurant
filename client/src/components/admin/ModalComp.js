@@ -86,6 +86,8 @@ function ModalComp(props) {
             productCtg: form.productCtg.value,
             productPrice: form.productPrice.value,
             productActive: form.productActive.checked,
+            deliveryTime: form.deliveryTime.value,
+            imgUrl: form.imgUrl.value,
             fgMode: props.modalProps[0].fgMode,
           };
           setLoad("Y");
@@ -353,6 +355,53 @@ function ModalComp(props) {
                   />
                   <Form.Control.Feedback type="invalid" tooltip>
                     Price Must Not Empty!
+                  </Form.Control.Feedback>
+                </Form.Group>
+                <Form.Group
+                  className="mb-3"
+                  controlId="formDeliveryTime"
+                  style={{ position: "relative" }}
+                >
+                  <Form.Label>Delivery Time (Minute)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    placeholder="Price"
+                    name="deliveryTime"
+                    min={1}
+                    max={300}
+                    pattern="[0-9]"
+                    defaultValue={
+                      props.modalProps[0].fgMode === "E"
+                        ? props.dataEdit[0].delivery_time
+                        : ""
+                    }
+                    required
+                  />
+                  <Form.Control.Feedback type="invalid" tooltip>
+                    Price Must Not Empty!
+                  </Form.Control.Feedback>
+                </Form.Group>
+                <Form.Group
+                  className="mb-3"
+                  controlId="formImgUrl"
+                  style={{ position: "relative" }}
+                >
+                  <Form.Label>Image URL</Form.Label>
+
+                  <Form.Control
+                    required
+                    type="text"
+                    placeholder="Image URL"
+                    maxLength={255}
+                    name="imgUrl"
+                    defaultValue={
+                      props.modalProps[0].fgMode === "E"
+                        ? props.dataEdit[0].img_url
+                        : ""
+                    }
+                  />
+                  <Form.Control.Feedback type="invalid" tooltip>
+                    Image URL Must Not Empty!
                   </Form.Control.Feedback>
                 </Form.Group>
                 <Form.Group
@@ -856,6 +905,7 @@ function ModalComp(props) {
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
+        scrollable
         backdrop={isLoad == "Y" ? "static" : true}
       >
         <Modal.Header closeButton>

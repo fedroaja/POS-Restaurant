@@ -31,8 +31,10 @@ app.use(
 
 const authRoute = require("./routes/auth");
 const transRoute = require("./routes/trans");
+const cashierRoute = require("./routes/cashier");
 app.use("/auth", authRoute);
 app.use("/trans", transRoute);
+app.use("/cashier", cashierRoute);
 
 app.get("/", (request, response) => {
   request.session.destroy();

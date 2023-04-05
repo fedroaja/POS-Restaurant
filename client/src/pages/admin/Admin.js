@@ -9,12 +9,14 @@ function Admin() {
 
   useEffect(() => {
     (async function () {
-      let myUser = await fetch("http://localhost:5000/auth", {
+      setIsLoad(true);
+      let myUser = await fetch(process.env.REACT_APP_BASE_URL + "/auth", {
         method: "get",
         credentials: "include",
       });
       let myRes = await myUser.json();
 
+      setIsLoad(false);
       if (myRes.ECode === 0) {
         if (myRes.role !== 0) {
           navigate("/notfound");
@@ -22,7 +24,6 @@ function Admin() {
       } else {
         navigate("/login");
       }
-      setIsLoad(false);
     })();
     navigate("/admin/dashboard");
 
