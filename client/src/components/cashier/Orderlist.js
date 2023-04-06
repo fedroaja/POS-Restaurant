@@ -73,6 +73,7 @@ function Orderlist(props) {
                   display: "flex",
                   justifyContent: "flex-end",
                   alignItems: "flex-end",
+                  marginBottom: "3px",
                 }}
               >
                 <div

@@ -438,7 +438,7 @@ router.get("/transaction", (req, res) => {
 		  `;
   sql2 = `
 			select trans_id,invoice_id,product_name,
-      trans_qty, trans_amount, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate
+      trans_qty, trans_amount, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate, notes
 			from invoice_dt
 		  `;
   connection.query(sql, function (err, result, fields) {

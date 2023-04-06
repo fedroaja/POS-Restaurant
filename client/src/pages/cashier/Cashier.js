@@ -12,19 +12,43 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import SearchIcon from "@mui/icons-material/Search";
 import Card from "react-bootstrap/Card";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import { purple } from "@mui/material/colors";
 
 import Orderlist from "../../components/cashier/Orderlist";
+import ModalComponent from "../../components/cashier/ModalComponent";
 
 function Cashier() {
   const navigate = useNavigate();
   const [isLoad, setIsLoad] = useState(true);
+  const [isTblLoad, setIsTblLoad] = useState(false);
   const [ctgSelected, setCtgSelected] = useState(0);
+  const [searchVal, setSearchVal] = useState("");
   const [dataMenu, setDataMenu] = useState([]);
 
   const [product, setProduct] = useState([]);
   const [productFilter, setProductFilter] = useState([]);
 
   const [category, setCategory] = useState([]);
+
+  const [modalShow, setModalShow] = useState(false);
+  const [modalProps, setModalProps] = useState([
+    {
+      title: "",
+      fgMode: "",
+      fgModal: "",
+    },
+  ]);
+
+  const [dataTable, setDataTable] = useState([]);
+  const [selectedTable, setSelectedTable] = useState([
+    {
+      table_id: 0,
+      table_name: "Select Table",
+    },
+  ]);
 
   const dot = {
     height: "12px",
@@ -39,10 +63,14 @@ function Cashier() {
     boxShadow: "0 1px 4px 0 rgba(0,0,0,0.2)",
     background: "white",
     cursor: "pointer",
-    "&:hover, &:focus": {
-      background: "red",
-      borderColor: "red",
-    },
+  };
+
+  const cardStyleOrder = {
+    border: "none",
+    boxShadow: "0 1px 4px 0 rgba(0,0,0,0.2)",
+    background: "white",
+    marginTop: "10px",
+    width: "97%",
   };
 
   // const category = [
@@ -139,6 +167,29 @@ function Cashier() {
     },
   ];
 
+  async function getTable() {
+    setIsTblLoad(true);
+    let myUser = await fetch(
+      process.env.REACT_APP_BASE_URL + "/cashier/table",
+      { method: "get", credentials: "include" }
+    );
+    let myRes = await myUser.json();
+    setIsTblLoad(false);
+    if (myRes.ECode !== 20) {
+      setDataTable(myRes.table);
+      setModalProps([
+        {
+          title: "Select Table",
+          fgMode: "I",
+          fgModal: "table",
+        },
+      ]);
+      setModalShow(true);
+    } else {
+      alert(myRes.EMsg);
+    }
+  }
+
   useEffect(() => {
     (async function () {
       setIsLoad(true);
@@ -146,6 +197,15 @@ function Cashier() {
         method: "get",
         credentials: "include",
       });
+      let myRes = await myUser.json();
+      if (myRes.ECode === 0) {
+        if (myRes.role !== 1) {
+          navigate("/notfound");
+        }
+      } else {
+        navigate("/login");
+      }
+
       let myData = await fetch(
         process.env.REACT_APP_BASE_URL + "/cashier/product",
         {
@@ -154,12 +214,8 @@ function Cashier() {
         }
       );
 
-      let myRes = await myUser.json();
       let myResData = await myData.json();
       setIsLoad(false);
-
-      if (myRes.ECode !== 0) navigate("/login");
-      if (myRes.role !== 1) navigate("/notfound");
 
       setProduct(myResData.product);
       setProductFilter(myResData.product);
@@ -176,6 +232,7 @@ function Cashier() {
         <div style={{ margin: "1%" }} className="scrollbar">
           <Container>
             <Row>
+              {/* Left Content */}
               <Col
                 xs={12}
                 md={8}
@@ -252,13 +309,23 @@ function Cashier() {
                           onChange={(e) => {
                             setCtgSelected(e.currentTarget.value);
                             if (e.currentTarget.value === "0") {
-                              setProductFilter(product);
+                              setProductFilter(
+                                product.filter((x) => {
+                                  return x.product_name
+                                    .toLowerCase()
+                                    .includes(searchVal.toLowerCase());
+                                })
+                              );
                               return;
                             }
                             setProductFilter(
                               product.filter((x) => {
                                 return (
-                                  x.ctg_id.toString() === e.currentTarget.value
+                                  x.ctg_id.toString() ===
+                                    e.currentTarget.value &&
+                                  x.product_name
+                                    .toLowerCase()
+                                    .includes(searchVal.toLowerCase())
                                 );
                               })
                             );
@@ -289,6 +356,7 @@ function Cashier() {
                           aria-describedby="basic-addon1"
                           style={{ borderLeft: "none" }}
                           onChange={(e) => {
+                            setSearchVal(e.currentTarget.value);
                             setProductFilter(
                               product.filter((x) => {
                                 return (
@@ -322,9 +390,14 @@ function Cashier() {
                         key={x.id}
                         xs="6"
                         md="4"
-                        style={{ marginBottom: "3%" }}
+                        style={{ marginBottom: "8px" }}
                       >
-                        <Card style={cardStyle}>
+                        <Card
+                          style={cardStyle}
+                          onClick={() => {
+                            alert();
+                          }}
+                        >
                           <Card.Body>
                             <Container>
                               <Row>
@@ -413,7 +486,8 @@ function Cashier() {
                 </div>
                 {/* Order */}
               </Col>
-              <Col xs={12} md={4} style={{}}>
+              {/* Right Content */}
+              <Col xs={12} md={4}>
                 {/* invoice Head */}
                 <Row
                   style={{
@@ -422,8 +496,28 @@ function Cashier() {
                     color: "#674188",
                   }}
                 >
-                  <Col xs={10} md={8}>
-                    <h5>Current Order</h5>
+                  <Col
+                    xs={10}
+                    md={8}
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      alignItems: "flex-end",
+                    }}
+                  >
+                    <Button
+                      variant="outline-primary"
+                      style={{ borderRadius: "10px" }}
+                      onClick={(e) => {
+                        getTable();
+                      }}
+                    >
+                      {isTblLoad ? (
+                        <Loading type={"spinningBubbles"} size={20} />
+                      ) : (
+                        selectedTable[0].table_name
+                      )}
+                    </Button>
                   </Col>
                   <Col xs={2} md={4}>
                     <Button
@@ -435,9 +529,543 @@ function Cashier() {
                 </Row>
                 <hr />
                 {/* invoice Head */}
+                {/* Invoice Body */}
+                <Row
+                  className="scrollbar"
+                  style={{
+                    height: "35vh",
+                    overflow: "auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    paddingLeft: "12px",
+                    flexWrap: "nowrap",
+                  }}
+                >
+                  <Card style={cardStyleOrder}>
+                    <Card.Body>
+                      <Row>
+                        <Col
+                          md={2}
+                          style={{
+                            background:
+                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "cover",
+                            borderRadius: "8px",
+                          }}
+                        ></Col>
+                        <Col md={10}>
+                          <Row>
+                            <Col
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "18px",
+                              }}
+                            >
+                              Gado - Gado
+                            </Col>
+                          </Row>
+                          <Row xs={12} md={12}>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "14px",
+                                color: "#674188",
+                              }}
+                            >
+                              Rp. 12.000
+                            </Col>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                -
+                              </Button>
+                              <span
+                                style={{
+                                  paddingLeft: "5px",
+                                  paddingRight: "5px",
+                                }}
+                              >
+                                1
+                              </span>
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                +
+                              </Button>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                  <Card style={cardStyleOrder}>
+                    <Card.Body>
+                      <Row>
+                        <Col
+                          md={2}
+                          style={{
+                            background:
+                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "cover",
+                            borderRadius: "8px",
+                          }}
+                        ></Col>
+                        <Col md={10}>
+                          <Row>
+                            <Col
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "18px",
+                              }}
+                            >
+                              Gado - Gado
+                            </Col>
+                          </Row>
+                          <Row xs={12} md={12}>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "14px",
+                                color: "#674188",
+                              }}
+                            >
+                              Rp. 12.000
+                            </Col>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                -
+                              </Button>
+                              <span
+                                style={{
+                                  paddingLeft: "5px",
+                                  paddingRight: "5px",
+                                }}
+                              >
+                                1
+                              </span>
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                +
+                              </Button>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                  <Card style={cardStyleOrder}>
+                    <Card.Body>
+                      <Row>
+                        <Col
+                          md={2}
+                          style={{
+                            background:
+                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "cover",
+                            borderRadius: "8px",
+                          }}
+                        ></Col>
+                        <Col md={10}>
+                          <Row>
+                            <Col
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "18px",
+                              }}
+                            >
+                              Gado - Gado
+                            </Col>
+                          </Row>
+                          <Row xs={12} md={12}>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "14px",
+                                color: "#674188",
+                              }}
+                            >
+                              Rp. 12.000
+                            </Col>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                -
+                              </Button>
+                              <span
+                                style={{
+                                  paddingLeft: "5px",
+                                  paddingRight: "5px",
+                                }}
+                              >
+                                1
+                              </span>
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                +
+                              </Button>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                  <Card style={cardStyleOrder}>
+                    <Card.Body>
+                      <Row>
+                        <Col
+                          md={2}
+                          style={{
+                            background:
+                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "cover",
+                            borderRadius: "8px",
+                          }}
+                        ></Col>
+                        <Col md={10}>
+                          <Row>
+                            <Col
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "18px",
+                              }}
+                            >
+                              Gado - Gado
+                            </Col>
+                          </Row>
+                          <Row xs={12} md={12}>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "14px",
+                                color: "#674188",
+                              }}
+                            >
+                              Rp. 12.000
+                            </Col>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                -
+                              </Button>
+                              <span
+                                style={{
+                                  paddingLeft: "5px",
+                                  paddingRight: "5px",
+                                }}
+                              >
+                                1
+                              </span>
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                +
+                              </Button>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                  <Card style={cardStyleOrder}>
+                    <Card.Body>
+                      <Row>
+                        <Col
+                          md={2}
+                          style={{
+                            background:
+                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "cover",
+                            borderRadius: "8px",
+                          }}
+                        ></Col>
+                        <Col md={10}>
+                          <Row>
+                            <Col
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "18px",
+                              }}
+                            >
+                              Gado - Gado
+                            </Col>
+                          </Row>
+                          <Row xs={12} md={12}>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                fontWeight: "700",
+                                fontSize: "14px",
+                                color: "#674188",
+                              }}
+                            >
+                              Rp. 12.000
+                            </Col>
+                            <Col
+                              xs={12}
+                              md={6}
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                -
+                              </Button>
+                              <span
+                                style={{
+                                  paddingLeft: "5px",
+                                  paddingRight: "5px",
+                                }}
+                              >
+                                1
+                              </span>
+                              <Button
+                                size="sm"
+                                style={{
+                                  paddingTop: "0px",
+                                  paddingBottom: "0px",
+                                }}
+                              >
+                                +
+                              </Button>
+                            </Col>
+                          </Row>
+                        </Col>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </Row>
+                {/* Invoice Body */}
+                {/* Invoice Footer */}
+                <Row
+                  style={{
+                    marginTop: "10px",
+                    paddingLeft: "12px",
+                    height: "47vh",
+                  }}
+                >
+                  <Card style={cardStyleOrder}>
+                    <Card.Body>
+                      <Row>
+                        <Col md="6" style={{ fontWeight: "200" }}>
+                          Subtotal
+                        </Col>
+                        <Col
+                          md="6"
+                          style={{
+                            fontWeight: "500",
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          Rp. 12.400
+                        </Col>
+                      </Row>
+                      <Row style={{ marginTop: "8px" }}>
+                        <Col md="6" style={{ fontWeight: "200" }}>
+                          Tax(10%)
+                        </Col>
+                        <Col
+                          md="6"
+                          style={{
+                            fontWeight: "500",
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          Rp. 1.240
+                        </Col>
+                      </Row>
+                      <hr style={{ borderTop: "2px dashed black" }} />
+                      <Row style={{ marginTop: "8px" }}>
+                        <Col
+                          md="6"
+                          style={{ fontWeight: "200", fontSize: "20px" }}
+                        >
+                          Total
+                        </Col>
+                        <Col
+                          md="6"
+                          style={{
+                            fontWeight: "500",
+                            fontSize: "20px",
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          Rp. 13.500.444
+                        </Col>
+                      </Row>
+                      <Row style={{ marginTop: "30px" }}>
+                        <Col
+                          md="6"
+                          style={{ fontWeight: "200", fontSize: "14px" }}
+                        >
+                          Payment Method
+                        </Col>
+                      </Row>
+                      <Row style={{ marginTop: "4px" }}>
+                        <Col>
+                          <Card style={cardStyleOrder}>
+                            <Card.Body
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                              }}
+                            >
+                              <MonetizationOnIcon
+                                sx={{ fontSize: 30, color: purple[500] }}
+                              />
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                        <Col>
+                          <Card style={cardStyleOrder}>
+                            <Card.Body
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                              }}
+                            >
+                              <CreditCardIcon
+                                sx={{ fontSize: 30, color: purple[500] }}
+                              />
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                        <Col>
+                          <Card style={cardStyleOrder}>
+                            <Card.Body
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                paddingTop: "10px",
+                                paddingBottom: "10px",
+                              }}
+                            >
+                              <QrCodeScannerIcon
+                                sx={{ fontSize: 30, color: purple[500] }}
+                              />
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      </Row>
+                      <Row style={{ marginTop: "20px" }}>
+                        <Button size="lg">Order</Button>
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </Row>
+                {/* Invoice Footer */}
               </Col>
             </Row>
           </Container>
+          <ModalComponent
+            show={modalShow}
+            onHide={() => setModalShow(false)}
+            modalProps={modalProps}
+            dataTable={dataTable}
+            setSelectedTable={setSelectedTable}
+          />
         </div>
       )}
     </>

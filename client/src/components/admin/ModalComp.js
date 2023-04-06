@@ -40,6 +40,10 @@ function ModalComp(props) {
         status = "Rejected";
         bgColor = "#ff0404";
         break;
+      case "O":
+        status = "Ready";
+        bgColor = "purple";
+        break;
       case "D":
         status = "Done";
         bgColor = "#0058ff";
@@ -651,7 +655,16 @@ function ModalComp(props) {
                 {props.dataDetail.map((y, idx) => (
                   <Row key={idx}>
                     <Col>
-                      <small>{y.product_name}</small>
+                      <Row>
+                        <Col>
+                          <small>{y.product_name}</small>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col style={{ fontWeight: "100", fontSize: "12px" }}>
+                          <span>{y.notes}</span>
+                        </Col>
+                      </Row>
                     </Col>
                     <Col style={myStyle}>
                       <small>x{y.trans_qty}</small>
