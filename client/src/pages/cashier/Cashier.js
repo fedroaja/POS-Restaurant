@@ -15,10 +15,12 @@ import Card from "react-bootstrap/Card";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { purple } from "@mui/material/colors";
 
 import Orderlist from "../../components/cashier/Orderlist";
 import ModalComponent from "../../components/cashier/ModalComponent";
+import CloseButton from "react-bootstrap/esm/CloseButton";
 
 function Cashier() {
   const navigate = useNavigate();
@@ -26,7 +28,6 @@ function Cashier() {
   const [isTblLoad, setIsTblLoad] = useState(false);
   const [ctgSelected, setCtgSelected] = useState(0);
   const [searchVal, setSearchVal] = useState("");
-  const [dataMenu, setDataMenu] = useState([]);
 
   const [product, setProduct] = useState([]);
   const [productFilter, setProductFilter] = useState([]);
@@ -49,6 +50,10 @@ function Cashier() {
       table_name: "Select Table",
     },
   ]);
+
+  const [currOrderList, setCurrOrderList] = useState([]);
+
+  const [paymentSelected, setPaymentSelected] = useState("");
 
   const dot = {
     height: "12px",
@@ -394,8 +399,28 @@ function Cashier() {
                       >
                         <Card
                           style={cardStyle}
-                          onClick={() => {
-                            alert();
+                          onClick={(e) => {
+                            const isExists = currOrderList.find(
+                              (order) => order.id === x.id
+                            );
+                            if (!isExists) {
+                              const tmp = { ...x };
+                              tmp.product_qty = 1;
+                              setCurrOrderList((prev) => [...prev, tmp]);
+                            } else {
+                              setCurrOrderList(
+                                currOrderList.map((curr) => {
+                                  if (curr.id === x.id) {
+                                    return {
+                                      ...curr,
+                                      product_qty: curr.product_qty + 1,
+                                    };
+                                  } else {
+                                    return curr;
+                                  }
+                                })
+                              );
+                            }
                           }}
                         >
                           <Card.Body>
@@ -433,7 +458,7 @@ function Cashier() {
                                   xs={12}
                                   md={8}
                                 >
-                                  Rp. {x.product_price}
+                                  Rp. {x.product_price.toLocaleString("id-ID")}
                                 </Col>
                                 <Col
                                   xs={12}
@@ -522,6 +547,9 @@ function Cashier() {
                   <Col xs={2} md={4}>
                     <Button
                       style={{ backgroundColor: "#f74e4ed6", border: "none" }}
+                      onClick={(e) => {
+                        setCurrOrderList([]);
+                      }}
                     >
                       Clear All
                     </Button>
@@ -541,391 +569,190 @@ function Cashier() {
                     flexWrap: "nowrap",
                   }}
                 >
-                  <Card style={cardStyleOrder}>
-                    <Card.Body>
-                      <Row>
-                        <Col
-                          md={2}
-                          style={{
-                            background:
-                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
-                            backgroundRepeat: "no-repeat",
-                            backgroundSize: "cover",
-                            borderRadius: "8px",
-                          }}
-                        ></Col>
-                        <Col md={10}>
-                          <Row>
-                            <Col
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "18px",
-                              }}
-                            >
-                              Gado - Gado
-                            </Col>
-                          </Row>
-                          <Row xs={12} md={12}>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "14px",
-                                color: "#674188",
-                              }}
-                            >
-                              Rp. 12.000
-                            </Col>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Button
-                                size="sm"
+                  {currOrderList.length == 0 ? (
+                    <Col
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      Empty Order
+                    </Col>
+                  ) : (
+                    currOrderList.map((order, idx) => {
+                      return (
+                        <Card style={cardStyleOrder} key={idx}>
+                          <Card.Body>
+                            <Row>
+                              <Col
+                                md={2}
                                 style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
+                                  background:
+                                    "url('" +
+                                    order.img_url +
+                                    "') center center / contain no-repeat",
+                                  borderRadius: "8px",
                                 }}
-                              >
-                                -
-                              </Button>
-                              <span
-                                style={{
-                                  paddingLeft: "5px",
-                                  paddingRight: "5px",
-                                }}
-                              >
-                                1
-                              </span>
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                +
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                  <Card style={cardStyleOrder}>
-                    <Card.Body>
-                      <Row>
-                        <Col
-                          md={2}
-                          style={{
-                            background:
-                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
-                            backgroundRepeat: "no-repeat",
-                            backgroundSize: "cover",
-                            borderRadius: "8px",
-                          }}
-                        ></Col>
-                        <Col md={10}>
-                          <Row>
-                            <Col
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "18px",
-                              }}
+                              ></Col>
+                              <Col md={10}>
+                                <Row>
+                                  <Col
+                                    md={10}
+                                    style={{
+                                      fontWeight: "500",
+                                      fontSize: "18px",
+                                    }}
+                                  >
+                                    {order.product_name}
+                                  </Col>
+                                </Row>
+                                <Row xs={12} md={12}>
+                                  <Col
+                                    xs={12}
+                                    md={6}
+                                    style={{
+                                      fontWeight: "700",
+                                      fontSize: "14px",
+                                      color: "#674188",
+                                      display: "flex",
+                                      justifyContent: "flex-start",
+                                      alignItems: "flex-end",
+                                    }}
+                                  >
+                                    Rp.{" "}
+                                    {order.product_price.toLocaleString(
+                                      "id-ID"
+                                    )}
+                                  </Col>
+                                  <Col
+                                    xs={12}
+                                    md={6}
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "center",
+                                      alignItems: "baseline",
+                                    }}
+                                  >
+                                    <Button
+                                      size="sm"
+                                      style={{
+                                        width: "40px",
+                                        backgroundColor: purple[500],
+                                        border: "none",
+                                        fontWeight: "700",
+                                        paddingLeft: "10px",
+                                        paddingRight: "10px",
+                                      }}
+                                      onClick={(e) => {
+                                        if (order.product_qty <= 1) return;
+
+                                        setCurrOrderList(
+                                          currOrderList.map((curr) => {
+                                            if (curr.id === order.id) {
+                                              return {
+                                                ...curr,
+                                                product_qty:
+                                                  curr.product_qty - 1,
+                                              };
+                                            } else {
+                                              return curr;
+                                            }
+                                          })
+                                        );
+                                      }}
+                                    >
+                                      -
+                                    </Button>
+                                    <Form.Control
+                                      type="text"
+                                      disabled
+                                      value={order.product_qty}
+                                      style={{
+                                        marginLeft: "5px",
+                                        marginRight: "5px",
+                                        height: "30px",
+                                        width: "52px",
+                                      }}
+                                    ></Form.Control>
+                                    <Button
+                                      size="sm"
+                                      style={{
+                                        width: "40px",
+                                        backgroundColor: purple[500],
+                                        border: "none",
+                                        fontWeight: "700",
+                                      }}
+                                      onClick={(e) => {
+                                        setCurrOrderList(
+                                          currOrderList.map((curr) => {
+                                            if (curr.id === order.id) {
+                                              return {
+                                                ...curr,
+                                                product_qty:
+                                                  curr.product_qty + 1,
+                                              };
+                                            } else {
+                                              return curr;
+                                            }
+                                          })
+                                        );
+                                      }}
+                                    >
+                                      +
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      style={{
+                                        width: "40px",
+                                        marginLeft: "10px",
+                                        backgroundColor: "#f86a6a",
+                                        border: "none",
+                                        fontWeight: "700",
+                                      }}
+                                      onClick={(e) => {
+                                        setCurrOrderList((prev) => {
+                                          return prev.filter(
+                                            (x) => x.id !== order.id
+                                          );
+                                        });
+                                      }}
+                                    >
+                                      X
+                                    </Button>
+                                  </Col>
+                                </Row>
+                              </Col>
+                            </Row>
+                            <Row
+                              style={{ marginTop: "8px", fontWeight: "700" }}
                             >
-                              Gado - Gado
-                            </Col>
-                          </Row>
-                          <Row xs={12} md={12}>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "14px",
-                                color: "#674188",
-                              }}
-                            >
-                              Rp. 12.000
-                            </Col>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
+                              <small>Notes</small>
+                              <Form.Control
+                                type="text"
+                                maxLength={255}
+                                style={{ width: "96%", marginLeft: "10px" }}
+                                onChange={(e) => {
+                                  setCurrOrderList(
+                                    currOrderList.map((curr) => {
+                                      if (curr.id === order.id) {
+                                        return {
+                                          ...curr,
+                                          note: e.currentTarget.value,
+                                        };
+                                      } else {
+                                        return curr;
+                                      }
+                                    })
+                                  );
                                 }}
-                              >
-                                -
-                              </Button>
-                              <span
-                                style={{
-                                  paddingLeft: "5px",
-                                  paddingRight: "5px",
-                                }}
-                              >
-                                1
-                              </span>
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                +
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                  <Card style={cardStyleOrder}>
-                    <Card.Body>
-                      <Row>
-                        <Col
-                          md={2}
-                          style={{
-                            background:
-                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
-                            backgroundRepeat: "no-repeat",
-                            backgroundSize: "cover",
-                            borderRadius: "8px",
-                          }}
-                        ></Col>
-                        <Col md={10}>
-                          <Row>
-                            <Col
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "18px",
-                              }}
-                            >
-                              Gado - Gado
-                            </Col>
-                          </Row>
-                          <Row xs={12} md={12}>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "14px",
-                                color: "#674188",
-                              }}
-                            >
-                              Rp. 12.000
-                            </Col>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                -
-                              </Button>
-                              <span
-                                style={{
-                                  paddingLeft: "5px",
-                                  paddingRight: "5px",
-                                }}
-                              >
-                                1
-                              </span>
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                +
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                  <Card style={cardStyleOrder}>
-                    <Card.Body>
-                      <Row>
-                        <Col
-                          md={2}
-                          style={{
-                            background:
-                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
-                            backgroundRepeat: "no-repeat",
-                            backgroundSize: "cover",
-                            borderRadius: "8px",
-                          }}
-                        ></Col>
-                        <Col md={10}>
-                          <Row>
-                            <Col
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "18px",
-                              }}
-                            >
-                              Gado - Gado
-                            </Col>
-                          </Row>
-                          <Row xs={12} md={12}>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "14px",
-                                color: "#674188",
-                              }}
-                            >
-                              Rp. 12.000
-                            </Col>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                -
-                              </Button>
-                              <span
-                                style={{
-                                  paddingLeft: "5px",
-                                  paddingRight: "5px",
-                                }}
-                              >
-                                1
-                              </span>
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                +
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                  <Card style={cardStyleOrder}>
-                    <Card.Body>
-                      <Row>
-                        <Col
-                          md={2}
-                          style={{
-                            background:
-                              'url("https://asset.kompas.com/crops/Atp1STR6jMcegrNX0anTx5eN7xY=/0x0:1000x667/780x390/data/photo/2021/05/23/60aa371ed27a5.jpg")',
-                            backgroundRepeat: "no-repeat",
-                            backgroundSize: "cover",
-                            borderRadius: "8px",
-                          }}
-                        ></Col>
-                        <Col md={10}>
-                          <Row>
-                            <Col
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "18px",
-                              }}
-                            >
-                              Gado - Gado
-                            </Col>
-                          </Row>
-                          <Row xs={12} md={12}>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                fontWeight: "700",
-                                fontSize: "14px",
-                                color: "#674188",
-                              }}
-                            >
-                              Rp. 12.000
-                            </Col>
-                            <Col
-                              xs={12}
-                              md={6}
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                -
-                              </Button>
-                              <span
-                                style={{
-                                  paddingLeft: "5px",
-                                  paddingRight: "5px",
-                                }}
-                              >
-                                1
-                              </span>
-                              <Button
-                                size="sm"
-                                style={{
-                                  paddingTop: "0px",
-                                  paddingBottom: "0px",
-                                }}
-                              >
-                                +
-                              </Button>
-                            </Col>
-                          </Row>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
+                              ></Form.Control>
+                            </Row>
+                          </Card.Body>
+                        </Card>
+                      );
+                    })
+                  )}
                 </Row>
                 {/* Invoice Body */}
                 {/* Invoice Footer */}
@@ -950,7 +777,14 @@ function Cashier() {
                             justifyContent: "flex-end",
                           }}
                         >
-                          Rp. 12.400
+                          Rp.{" "}
+                          {currOrderList
+                            .reduce(
+                              (n, { product_price, product_qty }) =>
+                                n + product_price * product_qty,
+                              0
+                            )
+                            .toLocaleString("id-ID")}
                         </Col>
                       </Row>
                       <Row style={{ marginTop: "8px" }}>
@@ -965,7 +799,16 @@ function Cashier() {
                             justifyContent: "flex-end",
                           }}
                         >
-                          Rp. 1.240
+                          Rp.{" "}
+                          {parseInt(
+                            (currOrderList.reduce(
+                              (n, { product_price, product_qty }) =>
+                                n + product_price * product_qty,
+                              0
+                            ) *
+                              10) /
+                              100
+                          ).toLocaleString("id-ID")}
                         </Col>
                       </Row>
                       <hr style={{ borderTop: "2px dashed black" }} />
@@ -985,7 +828,23 @@ function Cashier() {
                             justifyContent: "flex-end",
                           }}
                         >
-                          Rp. 13.500.444
+                          Rp.{" "}
+                          {(
+                            currOrderList.reduce(
+                              (n, { product_price, product_qty }) =>
+                                n + product_price * product_qty,
+                              0
+                            ) +
+                            parseInt(
+                              (currOrderList.reduce(
+                                (n, { product_price, product_qty }) =>
+                                  n + product_price * product_qty,
+                                0
+                              ) *
+                                10) /
+                                100
+                            )
+                          ).toLocaleString("id-ID")}
                         </Col>
                       </Row>
                       <Row style={{ marginTop: "30px" }}>
@@ -998,7 +857,21 @@ function Cashier() {
                       </Row>
                       <Row style={{ marginTop: "4px" }}>
                         <Col>
-                          <Card style={cardStyleOrder}>
+                          <Card
+                            style={{
+                              border: "none",
+                              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.2)",
+                              background:
+                                paymentSelected == "cash"
+                                  ? purple[500]
+                                  : "white",
+                              marginTop: "10px",
+                              width: "97%",
+                            }}
+                            onClick={(e) => {
+                              setPaymentSelected("cash");
+                            }}
+                          >
                             <Card.Body
                               style={{
                                 display: "flex",
@@ -1006,16 +879,37 @@ function Cashier() {
                                 alignItems: "center",
                                 paddingTop: "10px",
                                 paddingBottom: "10px",
+                                cursor: "pointer",
                               }}
                             >
                               <MonetizationOnIcon
-                                sx={{ fontSize: 30, color: purple[500] }}
+                                sx={{
+                                  fontSize: 30,
+                                  color:
+                                    paymentSelected == "cash"
+                                      ? "white"
+                                      : purple[500],
+                                }}
                               />
                             </Card.Body>
                           </Card>
                         </Col>
                         <Col>
-                          <Card style={cardStyleOrder}>
+                          <Card
+                            style={{
+                              border: "none",
+                              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.2)",
+                              background:
+                                paymentSelected == "credit"
+                                  ? purple[500]
+                                  : "white",
+                              marginTop: "10px",
+                              width: "97%",
+                            }}
+                            onClick={(e) => {
+                              setPaymentSelected("credit");
+                            }}
+                          >
                             <Card.Body
                               style={{
                                 display: "flex",
@@ -1023,16 +917,37 @@ function Cashier() {
                                 alignItems: "center",
                                 paddingTop: "10px",
                                 paddingBottom: "10px",
+                                cursor: "pointer",
                               }}
                             >
                               <CreditCardIcon
-                                sx={{ fontSize: 30, color: purple[500] }}
+                                sx={{
+                                  fontSize: 30,
+                                  color:
+                                    paymentSelected == "credit"
+                                      ? "white"
+                                      : purple[500],
+                                }}
                               />
                             </Card.Body>
                           </Card>
                         </Col>
                         <Col>
-                          <Card style={cardStyleOrder}>
+                          <Card
+                            style={{
+                              border: "none",
+                              boxShadow: "0 1px 4px 0 rgba(0,0,0,0.2)",
+                              background:
+                                paymentSelected == "qrcode"
+                                  ? purple[500]
+                                  : "white",
+                              marginTop: "10px",
+                              width: "97%",
+                            }}
+                            onClick={(e) => {
+                              setPaymentSelected("qrcode");
+                            }}
+                          >
                             <Card.Body
                               style={{
                                 display: "flex",
@@ -1040,17 +955,32 @@ function Cashier() {
                                 alignItems: "center",
                                 paddingTop: "10px",
                                 paddingBottom: "10px",
+                                cursor: "pointer",
                               }}
                             >
                               <QrCodeScannerIcon
-                                sx={{ fontSize: 30, color: purple[500] }}
+                                sx={{
+                                  fontSize: 30,
+                                  color:
+                                    paymentSelected == "qrcode"
+                                      ? "white"
+                                      : purple[500],
+                                }}
                               />
                             </Card.Body>
                           </Card>
                         </Col>
                       </Row>
                       <Row style={{ marginTop: "20px" }}>
-                        <Button size="lg">Order</Button>
+                        <Button
+                          size="lg"
+                          style={{
+                            backgroundColor: purple[500],
+                            border: "none",
+                          }}
+                        >
+                          Order
+                        </Button>
                       </Row>
                     </Card.Body>
                   </Card>

@@ -9,8 +9,8 @@ router.get("/product", (req, res) => {
   if (!req.session.loggedin && !req.session.role != 1)
     return res.send({ ECode: 20, EMsg: "Session Expired" });
   sql = `
-              select product_id id,product_code,product_name,ctg_id, ctg_name,FORMAT(product_price,'id_ID') as product_price,
-                     DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active, delivery_time, img_url, 0 as selected
+              select product_id id,product_code,product_name,ctg_id, ctg_name,product_price,
+                     DATE_FORMAT(product.upddate,'%d/%m/%Y') as upddate, fgActive active, delivery_time, img_url, 0 as selected, 0 as product_qty, '' as note
               from product
               inner join product_ctg on product_ctg.ctg_id = product.product_ctg
               where fgActive = 'Y'
