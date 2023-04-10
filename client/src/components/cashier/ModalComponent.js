@@ -104,6 +104,7 @@ function ModalComponent(props) {
                         let selected = [
                           {
                             table_id: x.table_id,
+                            table_code: x.table_code,
                             table_name: x.table_name,
                           },
                         ];

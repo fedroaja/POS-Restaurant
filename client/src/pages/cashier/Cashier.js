@@ -15,17 +15,19 @@ import Card from "react-bootstrap/Card";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { purple } from "@mui/material/colors";
 
 import Orderlist from "../../components/cashier/Orderlist";
 import ModalComponent from "../../components/cashier/ModalComponent";
-import CloseButton from "react-bootstrap/esm/CloseButton";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 function Cashier() {
   const navigate = useNavigate();
   const [isLoad, setIsLoad] = useState(true);
   const [isTblLoad, setIsTblLoad] = useState(false);
+  const [isOrderLoad, setIsOrderLoad] = useState(false);
   const [ctgSelected, setCtgSelected] = useState(0);
   const [searchVal, setSearchVal] = useState("");
 
@@ -47,6 +49,7 @@ function Cashier() {
   const [selectedTable, setSelectedTable] = useState([
     {
       table_id: 0,
+      table_code: "",
       table_name: "Select Table",
     },
   ]);
@@ -54,6 +57,7 @@ function Cashier() {
   const [currOrderList, setCurrOrderList] = useState([]);
 
   const [paymentSelected, setPaymentSelected] = useState("");
+  const [openSnackBar, setOpenSnackBar] = useState(false);
 
   const dot = {
     height: "12px",
@@ -139,38 +143,7 @@ function Cashier() {
   //   },
   // ]);
 
-  const dataDummyInv = [
-    {
-      table: "Table - 1",
-      invoice: "IN883N233",
-      time: "5",
-      status: "P",
-    },
-    {
-      table: "Table - 2",
-      invoice: "IN845BN3",
-      time: "5",
-      status: "P",
-    },
-    {
-      table: "Table - 3",
-      invoice: "IN845BN4",
-      time: "2",
-      status: "P",
-    },
-    {
-      table: "Table - 4",
-      invoice: "IN845BN5",
-      time: "2",
-      status: "P",
-    },
-    {
-      table: "Table - 5",
-      invoice: "IN845BN3",
-      time: "2",
-      status: "P",
-    },
-  ];
+  const [dataWaitingList, setDataWaitingList] = useState([]);
 
   async function getTable() {
     setIsTblLoad(true);
@@ -193,6 +166,77 @@ function Cashier() {
     } else {
       alert(myRes.EMsg);
     }
+  }
+
+  async function makeOrder(e) {
+    e.preventDefault();
+    if (currOrderList.length == 0) {
+      alert("Order Must Not Empty");
+      return;
+    }
+    if (selectedTable[0].table_id == 0) {
+      alert("Please Select Table");
+      return;
+    }
+    if (paymentSelected == "") {
+      alert("Please Select Payment");
+      return;
+    }
+
+    setIsOrderLoad(true);
+
+    const dataSave = {
+      invoiceHd: {
+        tableCode: selectedTable[0].table_code,
+        tableName: selectedTable[0].table_name,
+        totalPrice:
+          currOrderList.reduce((n, { trans_amount }) => n + trans_amount, 0) +
+          parseInt(
+            (currOrderList.reduce(
+              (n, { trans_amount }) => n + trans_amount,
+              0
+            ) *
+              10) /
+              100
+          ),
+        deliveryTime: currOrderList.reduce(
+          (n, { delivery_time }) => n + delivery_time,
+          0
+        ),
+        paymentMethod: paymentSelected,
+        fgStatus: "P",
+      },
+      invoiceDt: currOrderList,
+    };
+
+    let result = await fetch(
+      process.env.REACT_APP_BASE_URL + "/cashier/addorder",
+      {
+        method: "post",
+        body: JSON.stringify(dataSave),
+        headers: {
+          "Content-type": "application/json;charset=UTF-8",
+        },
+        credentials: "include",
+      }
+    );
+    result = await result.json().then((data) => {
+      setIsOrderLoad(false);
+      if (data.ECode !== 0) {
+        alert(data.EMsg);
+        return;
+      }
+      setDataWaitingList((prev) => [...prev, data.invoice[0]]);
+      setCurrOrderList([]);
+      setSelectedTable([
+        {
+          table_id: 0,
+          table_code: "",
+          table_name: "Select Table",
+        },
+      ]);
+      setOpenSnackBar(true);
+    });
   }
 
   useEffect(() => {
@@ -225,6 +269,7 @@ function Cashier() {
       setProduct(myResData.product);
       setProductFilter(myResData.product);
       setCategory(myResData.category);
+      setDataWaitingList(myResData.invoice);
       setCtgSelected(0);
     })();
   }, []);
@@ -414,6 +459,9 @@ function Cashier() {
                                     return {
                                       ...curr,
                                       product_qty: curr.product_qty + 1,
+                                      trans_amount:
+                                        (curr.product_qty + 1) *
+                                        curr.product_price,
                                     };
                                   } else {
                                     return curr;
@@ -504,7 +552,7 @@ function Cashier() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {dataDummyInv.map((x, idx) => (
+                    {dataWaitingList.map((x, idx) => (
                       <Orderlist data={x} key={idx} />
                     ))}
                   </div>
@@ -621,9 +669,7 @@ function Cashier() {
                                     }}
                                   >
                                     Rp.{" "}
-                                    {order.product_price.toLocaleString(
-                                      "id-ID"
-                                    )}
+                                    {order.trans_amount.toLocaleString("id-ID")}
                                   </Col>
                                   <Col
                                     xs={12}
@@ -654,6 +700,9 @@ function Cashier() {
                                                 ...curr,
                                                 product_qty:
                                                   curr.product_qty - 1,
+                                                trans_amount:
+                                                  (curr.product_qty - 1) *
+                                                  curr.product_price,
                                               };
                                             } else {
                                               return curr;
@@ -691,6 +740,9 @@ function Cashier() {
                                                 ...curr,
                                                 product_qty:
                                                   curr.product_qty + 1,
+                                                trans_amount:
+                                                  (curr.product_qty + 1) *
+                                                  curr.product_price,
                                               };
                                             } else {
                                               return curr;
@@ -780,8 +832,7 @@ function Cashier() {
                           Rp.{" "}
                           {currOrderList
                             .reduce(
-                              (n, { product_price, product_qty }) =>
-                                n + product_price * product_qty,
+                              (n, { trans_amount }) => n + trans_amount,
                               0
                             )
                             .toLocaleString("id-ID")}
@@ -802,8 +853,7 @@ function Cashier() {
                           Rp.{" "}
                           {parseInt(
                             (currOrderList.reduce(
-                              (n, { product_price, product_qty }) =>
-                                n + product_price * product_qty,
+                              (n, { trans_amount }) => n + trans_amount,
                               0
                             ) *
                               10) /
@@ -831,14 +881,12 @@ function Cashier() {
                           Rp.{" "}
                           {(
                             currOrderList.reduce(
-                              (n, { product_price, product_qty }) =>
-                                n + product_price * product_qty,
+                              (n, { trans_amount }) => n + trans_amount,
                               0
                             ) +
                             parseInt(
                               (currOrderList.reduce(
-                                (n, { product_price, product_qty }) =>
-                                  n + product_price * product_qty,
+                                (n, { trans_amount }) => n + trans_amount,
                                 0
                               ) *
                                 10) /
@@ -978,6 +1026,7 @@ function Cashier() {
                             backgroundColor: purple[500],
                             border: "none",
                           }}
+                          onClick={(e) => makeOrder(e)}
                         >
                           Order
                         </Button>
@@ -996,6 +1045,21 @@ function Cashier() {
             dataTable={dataTable}
             setSelectedTable={setSelectedTable}
           />
+          <Snackbar
+            ContentProps={{
+              sx: {
+                background: "green",
+              },
+            }}
+            open={openSnackBar}
+            onClose={() => setOpenSnackBar(false)}
+            autoHideDuration={4000}
+          >
+            <Alert icon={<CheckCircleOutlineIcon />}>
+              {dataWaitingList[dataWaitingList.length - 1].invoice_code +
+                " Succesfuly Submited"}
+            </Alert>
+          </Snackbar>
         </div>
       )}
     </>

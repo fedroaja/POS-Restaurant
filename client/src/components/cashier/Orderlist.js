@@ -7,9 +7,12 @@ import Card from "react-bootstrap/Card";
 
 function Orderlist(props) {
   const [time, setTime] = useState(0);
+  const [startTime, setStartTime] = useState(false);
 
   const startDate = new Date();
-  const endDate = new Date(startDate.getTime() + 1000 * 60 * props.data.time); // + 10 seconds
+  const endDate = new Date(
+    startDate.getTime() + 1000 * 60 * props.data.delivery_time
+  ); // + 10 seconds
   const range = endDate - startDate;
 
   function updateCountdown() {
@@ -23,8 +26,11 @@ function Orderlist(props) {
   }
 
   useEffect(() => {
-    updateCountdown();
-  }, []);
+    if (props.data.fgStatus == "A") {
+      setStartTime(true);
+      updateCountdown();
+    }
+  }, [props.data.fgStatus]);
 
   return (
     <div style={{ display: "inline-block", float: "none" }}>
@@ -63,8 +69,9 @@ function Orderlist(props) {
                   fontWeight: "600",
                 }}
               >
-                {props.data.invoice}
-                <br />6 Items | Table 1
+                {props.data.invoice_code}
+                <br />
+                {props.data.total_item} Items | {props.data.table_name}
               </span>
             </Col>
             <Col>
@@ -97,19 +104,23 @@ function Orderlist(props) {
                   alignItems: "flex-end",
                 }}
               >
-                <div
-                  style={{
-                    width: "25px",
-                    height: "25px",
-                    display: time === 100 ? "none" : "",
-                  }}
-                >
-                  <CircularProgressbar
-                    value={time}
-                    strokeWidth={15}
-                    text={time}
-                  />
-                </div>
+                {startTime ? (
+                  <div
+                    style={{
+                      width: "25px",
+                      height: "25px",
+                      display: time === 100 ? "none" : "",
+                    }}
+                  >
+                    <CircularProgressbar
+                      value={time}
+                      strokeWidth={15}
+                      text={time}
+                    />
+                  </div>
+                ) : (
+                  ""
+                )}
               </Col>
             </Col>
           </Row>
