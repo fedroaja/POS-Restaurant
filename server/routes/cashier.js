@@ -142,7 +142,12 @@ router.post("/addorder", async (req, res) => {
 
   const upddate = new Date();
   const updby = req.session.username;
-  const date = upddate.toISOString().slice(0, 10).replace(/-/g, "");
+  const date = upddate
+    .toLocaleString("en-GB")
+    .slice(0, 10)
+    .split("/")
+    .reverse()
+    .join("");
 
   const invoice_code = await getInvoiceCode(date);
   const table_name = req.body.invoiceHd.tableName;

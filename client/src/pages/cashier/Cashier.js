@@ -1056,8 +1056,10 @@ function Cashier() {
             autoHideDuration={4000}
           >
             <Alert icon={<CheckCircleOutlineIcon />}>
-              {dataWaitingList[dataWaitingList.length - 1].invoice_code +
-                " Succesfuly Submited"}
+              {dataWaitingList.length > 0
+                ? dataWaitingList[dataWaitingList.length - 1].invoice_code
+                : ""}{" "}
+              Succesfuly Submited
             </Alert>
           </Snackbar>
         </div>
