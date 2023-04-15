@@ -102,6 +102,7 @@ router.get("/dashboard", (req, res) => {
           let curr = result2[0].total;
           let prev = result3[0].total;
           let resPercent = !prev ? 100 : (100 * (curr - prev)) / prev;
+          console.log(resPercent, curr, prev);
           resPercent = resPercent.toFixed(2);
           res.send({
             hist: result,
@@ -434,7 +435,7 @@ router.get("/transaction", (req, res) => {
 			select invoice_id,invoice_code,table_name, DATE_FORMAT(upddate,'%d/%m/%Y') as upddate,  
       DATE_FORMAT(trans_date,'%d/%m/%Y') as trans_date ,fgStatus status
 			from invoice
-      order by upddate
+      order by invoice.upddate desc
 		  `;
   sql2 = `
 			select trans_id,invoice_id,product_name,

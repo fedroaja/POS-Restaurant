@@ -120,6 +120,7 @@ function Login() {
             <div className="form-group mt-3">
               <label>Username</label>
               <input
+                autoFocus
                 type="text"
                 name="username"
                 className="form-control mt-1"

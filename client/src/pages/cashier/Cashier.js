@@ -22,6 +22,7 @@ import ModalComponent from "../../components/cashier/ModalComponent";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 function Cashier() {
   const navigate = useNavigate();
@@ -226,7 +227,7 @@ function Cashier() {
         alert(data.EMsg);
         return;
       }
-      setDataWaitingList((prev) => [...prev, data.invoice[0]]);
+      setDataWaitingList(data.invoice);
       setCurrOrderList([]);
       setSelectedTable([
         {
@@ -235,8 +236,42 @@ function Cashier() {
           table_name: "Select Table",
         },
       ]);
+      setPaymentSelected("");
       setOpenSnackBar(true);
     });
+  }
+
+  function handleOnLogout(e) {
+    e.preventDefault();
+    (async function () {
+      let myUser = await fetch(
+        process.env.REACT_APP_BASE_URL + "/auth/logout",
+        { method: "delete", credentials: "include" }
+      );
+      let myRes = await myUser.json();
+
+      if (myRes.ECode === 0) {
+        localStorage.clear();
+        navigate("/login");
+      }
+    })();
+  }
+
+  function handleOrderRefresh(e) {
+    e.preventDefault();
+    (async function () {
+      let myOrder = await fetch(
+        process.env.REACT_APP_BASE_URL + "/cashier/orderslist",
+        { method: "get", credentials: "include" }
+      );
+      let myRes = await myOrder.json();
+
+      if (myRes.ECode !== 0) {
+        alert(myRes.EMsg);
+        return;
+      }
+      setDataWaitingList(myRes.invoice);
+    })();
   }
 
   useEffect(() => {
@@ -317,6 +352,7 @@ function Cashier() {
                           justifyContent: "center",
                           alignItems: "center",
                         }}
+                        onClick={(e) => handleOnLogout(e)}
                       >
                         <LogoutIcon style={{ fontSize: "20px" }}></LogoutIcon>{" "}
                         Logout
@@ -445,6 +481,8 @@ function Cashier() {
                         <Card
                           style={cardStyle}
                           onClick={(e) => {
+                            if (isOrderLoad) return;
+
                             const isExists = currOrderList.find(
                               (order) => order.id === x.id
                             );
@@ -538,23 +576,50 @@ function Cashier() {
                 {/* Order */}
                 <div
                   style={{
-                    overflow: "auto",
-                    overflowY: "hidden",
-                    marginTop: "-20px",
-                    height: "12%",
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    alignItems: "flex-start",
                   }}
-                  className="inner"
                 >
                   <div
                     style={{
-                      marginTop: "2%",
-                      marginLeft: "0px",
-                      whiteSpace: "nowrap",
+                      borderRight: "1px solid #67418838",
+                      paddingRight: "10px",
                     }}
                   >
-                    {dataWaitingList.map((x, idx) => (
-                      <Orderlist data={x} key={idx} />
-                    ))}
+                    <Button
+                      onClick={(e) => {
+                        handleOrderRefresh(e);
+                      }}
+                    >
+                      <RefreshIcon />
+                    </Button>
+                  </div>
+                  <div
+                    style={{
+                      overflow: "auto",
+                      overflowY: "hidden",
+                      marginTop: "-20px",
+                      height: "12%",
+                    }}
+                    className="inner"
+                  >
+                    <div
+                      style={{
+                        marginTop: "2%",
+                        marginLeft: "0px",
+                        whiteSpace: "nowrap",
+                        paddingBottom: "8px",
+                      }}
+                    >
+                      {dataWaitingList.map((x, idx) => (
+                        <Orderlist
+                          data={x}
+                          setData={setDataWaitingList}
+                          key={idx}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
                 {/* Order */}
@@ -582,6 +647,7 @@ function Cashier() {
                       variant="outline-primary"
                       style={{ borderRadius: "10px" }}
                       onClick={(e) => {
+                        if (isOrderLoad) return;
                         getTable();
                       }}
                     >
@@ -596,6 +662,7 @@ function Cashier() {
                     <Button
                       style={{ backgroundColor: "#f74e4ed6", border: "none" }}
                       onClick={(e) => {
+                        if (isOrderLoad) return;
                         setCurrOrderList([]);
                       }}
                     >
@@ -691,6 +758,7 @@ function Cashier() {
                                         paddingRight: "10px",
                                       }}
                                       onClick={(e) => {
+                                        if (isOrderLoad) return;
                                         if (order.product_qty <= 1) return;
 
                                         setCurrOrderList(
@@ -733,6 +801,7 @@ function Cashier() {
                                         fontWeight: "700",
                                       }}
                                       onClick={(e) => {
+                                        if (isOrderLoad) return;
                                         setCurrOrderList(
                                           currOrderList.map((curr) => {
                                             if (curr.id === order.id) {
@@ -763,6 +832,7 @@ function Cashier() {
                                         fontWeight: "700",
                                       }}
                                       onClick={(e) => {
+                                        if (isOrderLoad) return;
                                         setCurrOrderList((prev) => {
                                           return prev.filter(
                                             (x) => x.id !== order.id
@@ -785,6 +855,7 @@ function Cashier() {
                                 maxLength={255}
                                 style={{ width: "96%", marginLeft: "10px" }}
                                 onChange={(e) => {
+                                  if (isOrderLoad) return;
                                   setCurrOrderList(
                                     currOrderList.map((curr) => {
                                       if (curr.id === order.id) {
@@ -917,6 +988,7 @@ function Cashier() {
                               width: "97%",
                             }}
                             onClick={(e) => {
+                              if (isOrderLoad) return;
                               setPaymentSelected("cash");
                             }}
                           >
@@ -955,6 +1027,7 @@ function Cashier() {
                               width: "97%",
                             }}
                             onClick={(e) => {
+                              if (isOrderLoad) return;
                               setPaymentSelected("credit");
                             }}
                           >
@@ -993,6 +1066,7 @@ function Cashier() {
                               width: "97%",
                             }}
                             onClick={(e) => {
+                              if (isOrderLoad) return;
                               setPaymentSelected("qrcode");
                             }}
                           >
@@ -1026,7 +1100,10 @@ function Cashier() {
                             backgroundColor: purple[500],
                             border: "none",
                           }}
-                          onClick={(e) => makeOrder(e)}
+                          onClick={(e) => {
+                            if (isOrderLoad) return;
+                            makeOrder(e);
+                          }}
                         >
                           Order
                         </Button>

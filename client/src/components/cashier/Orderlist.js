@@ -4,12 +4,17 @@ import "react-circular-progressbar/dist/styles.css";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Card from "react-bootstrap/Card";
+import Button from "react-bootstrap/Button";
+import DoneIcon from "@mui/icons-material/Done";
+import ThumbsUpDownIcon from "@mui/icons-material/ThumbsUpDown";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 function Orderlist(props) {
   const [time, setTime] = useState(0);
   const [startTime, setStartTime] = useState(false);
 
-  const startDate = new Date();
+  const startDate = new Date(props.data.upddate);
   const endDate = new Date(
     startDate.getTime() + 1000 * 60 * props.data.delivery_time
   ); // + 10 seconds
@@ -25,12 +30,101 @@ function Orderlist(props) {
     }
   }
 
+  function getStatus(code) {
+    let status = "";
+    let bgColor = "white";
+    switch (code) {
+      case "P":
+        status = "Process";
+        bgColor = "#ffa206";
+        break;
+      case "A":
+        status = "Approved";
+        bgColor = "#00d636";
+        break;
+      case "R":
+        status = "Rejected";
+        bgColor = "#ff0404";
+        break;
+      case "O":
+        status = "Ready";
+        bgColor = "purple";
+        break;
+      case "D":
+        status = "Done";
+        bgColor = "#0058ff";
+        break;
+      default:
+        break;
+    }
+    return (
+      <div
+        style={{
+          backgroundColor: bgColor,
+          borderRadius: "10px",
+          width: "50px",
+          height: "15px",
+          textAlign: "center",
+          color: "white",
+          fontSize: "9px",
+        }}
+      >
+        {status}
+      </div>
+    );
+  }
+
+  async function updateOrder(status) {
+    let updateStatus = await fetch(
+      process.env.REACT_APP_BASE_URL + "/cashier/updateorder",
+      {
+        method: "post",
+        body: JSON.stringify({
+          status: status,
+          invoice_id: props.data.invoice_id,
+          table_code: props.data.table_code,
+        }),
+        headers: {
+          "Content-type": "application/json;charset=UTF-8",
+        },
+        credentials: "include",
+      }
+    );
+    let myRes = await updateStatus.json();
+
+    if (myRes.ECode !== 0) {
+      alert(myRes.EMsg);
+      return;
+    }
+    props.setData(myRes.invoice);
+  }
+
+  function getIcon(status) {
+    switch (status) {
+      case "P":
+        return <ThumbsUpDownIcon />;
+      case "A":
+        return <HourglassEmptyIcon />;
+      case "O":
+        return <RestaurantIcon />;
+    }
+  }
+
+  useEffect(() => {
+    cancelAnimationFrame(updateCountdown);
+  }, []);
+
   useEffect(() => {
     if (props.data.fgStatus == "A") {
       setStartTime(true);
       updateCountdown();
     }
   }, [props.data.fgStatus]);
+
+  useEffect(() => {
+    if (time != 100) return;
+    updateOrder("O");
+  }, [time]);
 
   return (
     <div style={{ display: "inline-block", float: "none" }}>
@@ -54,15 +148,22 @@ function Orderlist(props) {
                 alignItems: "center",
               }}
             >
-              <img
-                width={"45px"}
-                height={"45px"}
+              <span
                 style={{
                   borderRadius: "10px",
                   marginRight: "8px",
+                  width: "45px",
+                  height: "45px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  fontSize: "20px",
+                  color: "white",
+                  background: "#674188",
                 }}
-                src="https://img.kurio.network/rlKzeW_1_iLZ-JMm9fFHX-rGdIE=/1200x1200/filters:quality(80)/https://kurio-img.kurioapps.com/22/06/22/53264347-b7ba-4257-852d-04e3d1b4e4e5.jpe"
-              ></img>
+              >
+                {getIcon(props.data.fgStatus)}
+              </span>
               <span
                 style={{
                   fontSize: "12px",
@@ -83,19 +184,7 @@ function Orderlist(props) {
                   marginBottom: "3px",
                 }}
               >
-                <div
-                  style={{
-                    backgroundColor: "orange",
-                    borderRadius: "10px",
-                    width: "50px",
-                    height: "15px",
-                    textAlign: "center",
-                    color: "white",
-                    fontSize: "9px",
-                  }}
-                >
-                  Process
-                </div>
+                {getStatus(props.data.fgStatus)}
               </Col>
               <Col
                 style={{
@@ -115,9 +204,28 @@ function Orderlist(props) {
                     <CircularProgressbar
                       value={time}
                       strokeWidth={15}
-                      text={time}
+                      text={time < 0 ? "Waiting" : time}
                     />
                   </div>
+                ) : (
+                  ""
+                )}
+                {props.data.fgStatus === "O" ? (
+                  <Button
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "27px",
+                      width: "28px",
+                      borderRadius: "15px",
+                    }}
+                    onClick={(e) => {
+                      updateOrder("D");
+                    }}
+                  >
+                    <DoneIcon sx={{ fontSize: 15 }} />
+                  </Button>
                 ) : (
                   ""
                 )}
