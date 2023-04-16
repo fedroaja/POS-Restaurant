@@ -12,7 +12,6 @@ import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 function Orderlist(props) {
   const [time, setTime] = useState(0);
-  const requestRef = useRef();
 
   const startDate = new Date(props.data.upddate);
   const endDate = new Date(
@@ -32,8 +31,9 @@ function Orderlist(props) {
           clearInterval(myTimer);
         }
       }, 1000);
+      return () => clearInterval(myTimer);
     }
-  }, [props.data.fgStatus]);
+  });
 
   function getStatus(code) {
     let status = "";
