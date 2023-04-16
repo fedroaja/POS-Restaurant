@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import Row from "react-bootstrap/Row";
@@ -12,7 +12,7 @@ import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 function Orderlist(props) {
   const [time, setTime] = useState(0);
-  const [startTime, setStartTime] = useState(false);
+  const requestRef = useRef();
 
   const startDate = new Date(props.data.upddate);
   const endDate = new Date(
@@ -20,15 +20,20 @@ function Orderlist(props) {
   ); // + 10 seconds
   const range = endDate - startDate;
 
-  function updateCountdown() {
-    const diff = Math.max(0, endDate - new Date());
-    const percen = 100 - (100 * diff) / range;
-    setTime(parseInt(percen));
+  useEffect(() => {
+    if (props.data.fgStatus == "A") {
+      const myTimer = setInterval(() => {
+        let diff = Math.max(0, endDate - new Date());
+        let percen = 100 - (100 * diff) / range;
+        setTime(parseInt(percen));
+        console.log(percen);
 
-    if (diff >= 0) {
-      requestAnimationFrame(updateCountdown);
+        if (diff <= 0) {
+          clearInterval(myTimer);
+        }
+      }, 1000);
     }
-  }
+  }, [props.data.fgStatus]);
 
   function getStatus(code) {
     let status = "";
@@ -96,7 +101,7 @@ function Orderlist(props) {
       alert(myRes.EMsg);
       return;
     }
-    props.setData(myRes.invoice);
+    props.setDataWaitingList(myRes.invoice);
   }
 
   function getIcon(status) {
@@ -109,17 +114,6 @@ function Orderlist(props) {
         return <RestaurantIcon />;
     }
   }
-
-  useEffect(() => {
-    cancelAnimationFrame(updateCountdown);
-  }, []);
-
-  useEffect(() => {
-    if (props.data.fgStatus == "A") {
-      setStartTime(true);
-      updateCountdown();
-    }
-  }, [props.data.fgStatus]);
 
   useEffect(() => {
     if (time != 100) return;
@@ -193,7 +187,7 @@ function Orderlist(props) {
                   alignItems: "flex-end",
                 }}
               >
-                {startTime ? (
+                {props.data.fgStatus == "A" ? (
                   <div
                     style={{
                       width: "25px",

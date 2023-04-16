@@ -615,7 +615,7 @@ function Cashier() {
                       {dataWaitingList.map((x, idx) => (
                         <Orderlist
                           data={x}
-                          setData={setDataWaitingList}
+                          setDataWaitingList={setDataWaitingList}
                           key={idx}
                         />
                       ))}
