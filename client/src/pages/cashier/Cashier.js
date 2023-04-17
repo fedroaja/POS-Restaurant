@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../components/Loading";
 import Container from "react-bootstrap/Container";
@@ -23,6 +23,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { Checkbox } from "@mui/material";
 
 function Cashier() {
   const navigate = useNavigate();
@@ -59,14 +60,7 @@ function Cashier() {
 
   const [paymentSelected, setPaymentSelected] = useState("");
   const [openSnackBar, setOpenSnackBar] = useState(false);
-
-  const dot = {
-    height: "12px",
-    width: "12px",
-    backgroundColor: "lightgreen",
-    borderRadius: "50%",
-    display: "inline-block",
-  };
+  const [realtime, setRealtime] = useState(false);
 
   const cardStyle = {
     border: "none",
@@ -145,6 +139,7 @@ function Cashier() {
   // ]);
 
   const [dataWaitingList, setDataWaitingList] = useState([]);
+  const timeOutRef = useRef();
 
   async function getTable() {
     setIsTblLoad(true);
@@ -271,6 +266,23 @@ function Cashier() {
         return;
       }
       setDataWaitingList(myRes.invoice);
+    })();
+  }
+
+  function refreshOrder() {
+    (async function () {
+      let myOrder = await fetch(
+        process.env.REACT_APP_BASE_URL + "/cashier/orderslist",
+        { method: "get", credentials: "include" }
+      );
+      let myRes = await myOrder.json();
+
+      if (myRes.ECode !== 0) {
+        alert(myRes.EMsg);
+        return;
+      }
+      setDataWaitingList(myRes.invoice);
+      timeOutRef.current = setTimeout(refreshOrder, 1000);
     })();
   }
 
@@ -585,15 +597,45 @@ function Cashier() {
                     style={{
                       borderRight: "1px solid #67418838",
                       paddingRight: "10px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
-                    <Button
-                      onClick={(e) => {
-                        handleOrderRefresh(e);
+                    <div>
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          handleOrderRefresh(e);
+                        }}
+                      >
+                        <RefreshIcon />
+                      </Button>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
-                      <RefreshIcon />
-                    </Button>
+                      <Checkbox
+                        size="small"
+                        checked={realtime}
+                        onChange={(e) => {
+                          let val = e.currentTarget.checked;
+                          setRealtime(val);
+
+                          if (val)
+                            timeOutRef.current = setTimeout(refreshOrder, 1000);
+                          else clearTimeout(timeOutRef.current);
+                        }}
+                        inputProps={{ "aria-label": "controlled" }}
+                      />
+                      <span>Realtime</span>
+                    </div>
                   </div>
                   <div
                     style={{
